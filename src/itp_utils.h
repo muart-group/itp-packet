@@ -1,5 +1,9 @@
 #pragma once
 
+#include <math.h>
+#include <vector>
+#include <type_traits>
+
 namespace itp_packet
 {
 
@@ -82,6 +86,49 @@ namespace itp_packet
       return ((uint8_t)(2 * value)) - 16;
     }
 
+    // START Copied from esphome/core/helpers
+    static std::string format_hex_pretty(const uint8_t *data, size_t length)
+    {
+      if (length == 0)
+        return "";
+      std::string ret;
+      ret.resize(3 * length - 1);
+      for (size_t i = 0; i < length; i++)
+      {
+        ret[3 * i] = format_hex_pretty_char((data[i] & 0xF0) >> 4);
+        ret[3 * i + 1] = format_hex_pretty_char(data[i] & 0x0F);
+        if (i != length - 1)
+          ret[3 * i + 2] = '.';
+      }
+      if (length > 4)
+        return ret + " (" + std::to_string(length) + ")";
+      return ret;
+    }
+
+    static char format_hex_pretty_char(uint8_t v) { return v >= 10 ? 'A' + (v - 10) : '0' + v; }
+
+    static char format_hex_char(uint8_t v) { return v >= 10 ? 'a' + (v - 10) : '0' + v; }
+    static std::string format_hex(const uint8_t *data, size_t length)
+    {
+      std::string ret;
+      ret.resize(length * 2);
+      for (size_t i = 0; i < length; i++)
+      {
+        ret[2 * i] = format_hex_char((data[i] & 0xF0) >> 4);
+        ret[2 * i + 1] = format_hex_char(data[i] & 0x0F);
+      }
+      return ret;
+    }
+    static std::string format_hex(const std::vector<uint8_t> &data) { return format_hex(data.data(), data.size()); }
+    /// Format an unsigned integer in lowercased hex, starting with the most significant byte.
+    template <typename T>
+    typename std::enable_if<std::is_unsigned<T>::value, std::string>::type static format_hex(T val)
+    {
+      val = convert_big_endian(val);
+      return format_hex(reinterpret_cast<uint8_t *>(&val), sizeof(T));
+    }
+    // END copied-from
+
   private:
     /// Extract the specified bits (inclusive) from an arbitrarily-sized byte array. Does not perform bounds checks.
     /// Max extraction is 64 bits. Preserves endianness of incoming data stream.
@@ -97,7 +144,7 @@ namespace itp_packet
 
       // raw copy the relevant bytes into our int64, preserving endian-ness
       std::memcpy(&result, &ds[start_byte], end_byte - start_byte);
-      result = esphome::byteswap(result);
+      result = __builtin_bswap64(result);
 
       // shift out the bits we don't want from the end (64 + credit any pre-sliced bits)
       result >>= (sizeof(uint64_t) * 8) + (start_byte * 8) - end - 1;

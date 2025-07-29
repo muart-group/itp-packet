@@ -1,8 +1,8 @@
 #pragma once
 
-//#include "esphome/core/component.h"
-//#include "esphome/components/climate/climate.h"
-//#include "esphome/components/uart/uart.h"
+#include <itp_utils.h>
+#include <cstring>
+#include <stdint.h>
 #include <type_traits>
 
 namespace itp_packet
@@ -95,7 +95,7 @@ namespace itp_packet
               ControllerAssociation controller_association = ControllerAssociation::MITP); // For building packets
     virtual ~RawPacket() {}
 
-    virtual std::string to_string() const { return esphome::format_hex_pretty(&get_bytes()[0], get_length()); };
+    virtual std::string to_string() const { return ITPUtils::format_hex_pretty(&get_bytes()[0], get_length()); };
 
     uint8_t get_length() const { return length_; };
     const uint8_t *get_bytes() const { return packet_bytes_; }; // Primarily for sending packets

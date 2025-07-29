@@ -31,7 +31,7 @@ namespace itp_packet
     if (!this->is_checksum_valid())
     {
       // For now, just log this as information (we can decide if we want to process it elsewhere)
-      ESP_LOGI(PTAG, "Packet of type %x has invalid checksum!", this->get_packet_type());
+      // TODO: ESP_LOGI(PTAG, "Packet of type %x has invalid checksum!", this->get_packet_type());
     }
   }
 

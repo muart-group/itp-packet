@@ -1,6 +1,7 @@
 #include "itp_packet.h"
 #include "itp_utils.h"
-#include "esphome/core/datatypes.h"
+#include <time.h>
+#include <bit>
 
 namespace itp_packet
 {
@@ -56,14 +57,15 @@ namespace itp_packet
     uint8_t flags = get_flags();
 
     std::string result =
-        "Thermostat Sync " + Packet::to_string() + CONSOLE_COLOR_PURPLE + "\n Flags: " + esphome::format_hex(flags) + " =>";
+        "Thermostat Sync " + Packet::to_string() + CONSOLE_COLOR_PURPLE + "\n Flags: " + ITPUtils::format_hex(flags) + " =>";
 
     if (flags & TSSF_TIMESTAMP)
     {
-      esphome::ESPTime timestamp{};
-      get_thermostat_timestamp(&timestamp);
+      struct tm ts_timestamp = get_thermostat_timestamp();
+      char ts_chars[32]; // Buffer to store the formatted string
+      strftime(ts_chars, sizeof(ts_chars), "%Y-%m-%d %H:%M:%S", &ts_timestamp);
 
-      result += " TS Time: " + timestamp.strftime("%Y-%m-%d %H:%M:%S");
+      result += " TS Time: " + (std::string)ts_chars;
     }
 
     if (flags & TSSF_AUTO_MODE)
@@ -79,7 +81,7 @@ namespace itp_packet
   std::string GetRequestPacket::to_string() const
   {
     return ("Get Request: " + Packet::to_string() + CONSOLE_COLOR_PURPLE +
-            "\n CommandID: " + esphome::format_hex((uint8_t)get_requested_command()));
+            "\n CommandID: " + ITPUtils::format_hex((uint8_t)get_requested_command()));
   }
 
   std::string SettingsSetRequestPacket::to_string() const
@@ -88,7 +90,7 @@ namespace itp_packet
     uint8_t flags2 = get_flags_2();
 
     std::string result = "Settings Set Request: " + Packet::to_string() + CONSOLE_COLOR_PURPLE +
-                         "\n Flags: " + esphome::format_hex(flags2) + esphome::format_hex(flags) + " =>";
+                         "\n Flags: " + ITPUtils::format_hex(flags2) + ITPUtils::format_hex(flags) + " =>";
 
     if (flags & SettingFlag::SF_POWER)
       result += " Power: " + std::to_string(get_power());
@@ -142,15 +144,15 @@ namespace itp_packet
       // The utility class will already clamp this for us, so we only need to worry about the warning.
       if (temperature_degrees_c < 16 || temperature_degrees_c > 31.5)
       {
-        ESP_LOGW(PTAG, "Target temp %f is out of range for the legacy temp scale. This may be a problem on older units.",
-                 temperature_degrees_c);
+        // TODO: ESP_LOGW(PTAG, "Target temp %f is out of range for the legacy temp scale. This may be a problem on older units.",
+        //          temperature_degrees_c);
       }
 
       add_settings_flag_(SF_TARGET_TEMPERATURE);
     }
     else
     {
-      ESP_LOGW(PTAG, "Target temp %f is outside valid range - target temperature not set!", temperature_degrees_c);
+      // TODO: ESP_LOGW(PTAG, "Target temp %f is outside valid range - target temperature not set!", temperature_degrees_c);
     }
 
     return *this;
@@ -216,7 +218,7 @@ namespace itp_packet
     }
     else
     {
-      ESP_LOGW(PTAG, "Remote temp %f is outside valid range.", temperature_degrees_c);
+      // TODO: ESP_LOGW(PTAG, "Remote temp %f is outside valid range.", temperature_degrees_c);
     }
     return *this;
   }
@@ -254,20 +256,28 @@ namespace itp_packet
   }
 
   // ThermostatStateUploadPacket functions
-  time_t ThermostatStateUploadPacket::get_thermostat_timestamp(esphome::ESPTime *out_timestamp) const
+  struct tm ThermostatStateUploadPacket::get_thermostat_timestamp() const
   {
-    esphome::int32_be_t magic;
-    std::memcpy(&magic, pkt_.get_payload_bytes(PLINDEX_THERMOSTAT_TIMESTAMP), 4);
+    uint32_t raw_timestamp;
+    std::memcpy(&raw_timestamp, pkt_.get_payload_bytes(PLINDEX_THERMOSTAT_TIMESTAMP), 4);
 
-    out_timestamp->second = magic & 63;
-    out_timestamp->minute = (magic >> 6) & 63;
-    out_timestamp->hour = (magic >> 12) & 31;
-    out_timestamp->day_of_month = (magic >> 17) & 31;
-    out_timestamp->month = (magic >> 22) & 15;
-    out_timestamp->year = (magic >> 26) + 2017;
+    // Incoming data from thermostat is big-endian, ensure that it's still that way for bitwise operations
+    if constexpr (std::endian::native == std::endian::little)
+    {
+      raw_timestamp = std::byteswap(raw_timestamp);
+    }
 
-    out_timestamp->recalc_timestamp_local();
-    return out_timestamp->timestamp;
+    struct tm return_timestamp;
+
+    return_timestamp.tm_sec = raw_timestamp & 63;
+    return_timestamp.tm_min = (raw_timestamp >> 6) & 63;
+    return_timestamp.tm_hour = (raw_timestamp >> 12) & 31;
+    return_timestamp.tm_mday = (raw_timestamp >> 17) & 31;
+    return_timestamp.tm_mon = (raw_timestamp >> 22) & 15;
+    return_timestamp.tm_year = (raw_timestamp >> 26) + 2017;
+
+    // out_timestamp->recalc_timestamp_local();
+    return return_timestamp;
   }
 
   uint8_t ThermostatStateUploadPacket::get_auto_mode() const { return pkt_.get_payload_byte(PLINDEX_AUTO_MODE); }
@@ -285,12 +295,13 @@ namespace itp_packet
   }
 
   // ThermostatStateDownloadResponsePacket functions
-  ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_timestamp(esphome::ESPTime ts)
+  ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_timestamp(time_t ts)
   {
-    int32_t encoded_timestamp = ((ts.year - 2017) << 26) | (ts.month << 22) | (ts.day_of_month << 17) | (ts.hour << 12) |
-                                (ts.minute << 6) | (ts.second);
+    // int32_t encoded_timestamp = ((ts.year - 2017) << 26) | (ts.month << 22) | (ts.day_of_month << 17) | (ts.hour << 12) |
+    //                             (ts.minute << 6) | (ts.second);
+    int32_t encoded_timestamp = (int32_t)ts;
 
-    int32_t swapped_timestamp = esphome::byteswap(encoded_timestamp);
+    int32_t swapped_timestamp = __builtin_bswap32(encoded_timestamp);
 
     pkt_.set_payload_bytes(PLINDEX_ADAPTER_TIMESTAMP, &swapped_timestamp, 4);
     pkt_.set_payload_byte(10, 0x07); // ???
@@ -338,79 +349,9 @@ namespace itp_packet
       return 5;
 
     default:
-      ESP_LOGW(PACKETS_TAG, "Unexpected supported fan speeds: %i", raw_value);
+      // TODO: ESP_LOGW(PACKETS_TAG, "Unexpected supported fan speeds: %i", raw_value);
       return 0; // TODO: Depending on how this is used, it might be more useful to just return 3 and hope for the best
     }
-  }
-
-  esphome::climate::ClimateTraits CapabilitiesResponsePacket::as_traits() const
-  {
-    auto ct = esphome::climate::ClimateTraits();
-
-    // always enabled
-    ct.add_supported_mode(esphome::climate::CLIMATE_MODE_COOL);
-    ct.add_supported_mode(esphome::climate::CLIMATE_MODE_OFF);
-
-    if (!this->is_heat_disabled())
-      ct.add_supported_mode(esphome::climate::CLIMATE_MODE_HEAT);
-    if (!this->is_dry_disabled())
-      ct.add_supported_mode(esphome::climate::CLIMATE_MODE_DRY);
-    if (!this->is_fan_disabled())
-      ct.add_supported_mode(esphome::climate::CLIMATE_MODE_FAN_ONLY);
-
-    if (this->supports_vane_swing())
-    {
-      ct.add_supported_swing_mode(esphome::climate::CLIMATE_SWING_OFF);
-
-      if (this->supports_vane() && this->supports_h_vane())
-        ct.add_supported_swing_mode(esphome::climate::CLIMATE_SWING_BOTH);
-      if (this->supports_vane())
-        ct.add_supported_swing_mode(esphome::climate::CLIMATE_SWING_VERTICAL);
-      if (this->supports_h_vane())
-        ct.add_supported_swing_mode(esphome::climate::CLIMATE_SWING_HORIZONTAL);
-    }
-
-    ct.set_visual_min_temperature(std::min(this->get_min_cool_dry_setpoint(), this->get_min_heating_setpoint()));
-    ct.set_visual_max_temperature(std::max(this->get_max_cool_dry_setpoint(), this->get_max_heating_setpoint()));
-
-    // TODO: Figure out what these states *actually* map to so we aren't sending bad data.
-    // This is probably a dynamic map, so the setter will need to be aware of things.
-    switch (this->get_supported_fan_speeds())
-    {
-    case 1:
-      ct.set_supported_fan_modes({esphome::climate::CLIMATE_FAN_HIGH});
-      break;
-    case 2:
-      ct.set_supported_fan_modes({esphome::climate::CLIMATE_FAN_LOW, esphome::climate::CLIMATE_FAN_HIGH});
-      break;
-    case 3:
-      ct.set_supported_fan_modes({esphome::climate::CLIMATE_FAN_LOW, esphome::climate::CLIMATE_FAN_MEDIUM, esphome::climate::CLIMATE_FAN_HIGH});
-      break;
-    case 4:
-      ct.set_supported_fan_modes({
-          esphome::climate::CLIMATE_FAN_QUIET,
-          esphome::climate::CLIMATE_FAN_LOW,
-          esphome::climate::CLIMATE_FAN_MEDIUM,
-          esphome::climate::CLIMATE_FAN_HIGH,
-      });
-      break;
-    case 5:
-      ct.set_supported_fan_modes({
-          esphome::climate::CLIMATE_FAN_QUIET,
-          esphome::climate::CLIMATE_FAN_LOW,
-          esphome::climate::CLIMATE_FAN_MEDIUM,
-          esphome::climate::CLIMATE_FAN_HIGH,
-      });
-      ct.add_supported_custom_fan_mode("Very High");
-      break;
-    default:
-      // no-op, don't set a fan mode.
-      break;
-    }
-    if (!this->auto_fan_speed_disabled())
-      ct.add_supported_fan_mode(esphome::climate::CLIMATE_FAN_AUTO);
-
-    return ct;
   }
 
 } // namespace itp_packet

@@ -1,11 +1,12 @@
 #pragma once
 
 // #include "esphome/core/component.h"
-#include "esphome/components/climate/climate.h"
+//#include "esphome/components/climate/climate.h"
 // #include "esphome/components/uart/uart.h"
 #include "itp_rawpacket.h"
 #include "itp_utils.h"
-#include "esphome/core/time.h"
+//#include "esphome/core/time.h"
+#include <array>
 #include <sstream>
 
 namespace itp_packet
@@ -158,10 +159,6 @@ namespace itp_packet
     // Fan Speeds TODO: Probably move this to .cpp?
     uint8_t get_supported_fan_speeds() const;
 
-    // Convert a temperature response into ClimateTraits. This will *not* include library-provided features.
-    // This will also not handle things like MHK2 humidity detection.
-    esphome::climate::ClimateTraits as_traits() const;
-
     std::string to_string() const override;
   };
 
@@ -256,7 +253,7 @@ namespace itp_packet
   public:
     uint8_t get_power() const { return pkt_.get_payload_byte(PLINDEX_POWER); }
     uint8_t get_mode() const { return pkt_.get_payload_byte(PLINDEX_MODE); }
-    uint8_t get_fan() const { return pkt_.get_payload_byte(PLINDEX_FAN); }
+    const uint8_t get_fan() const { return pkt_.get_payload_byte(PLINDEX_FAN); }
     uint8_t get_vane() const { return pkt_.get_payload_byte(PLINDEX_VANE); }
     bool locked_power() const { return pkt_.get_payload_byte(PLINDEX_PROHIBITFLAGS) & 0x01; }
     bool locked_mode() const { return pkt_.get_payload_byte(PLINDEX_PROHIBITFLAGS) & 0x02; }
@@ -578,7 +575,7 @@ namespace itp_packet
       pkt_.set_payload_byte(0, static_cast<uint8_t>(SetCommand::THERMOSTAT_STATE_UPLOAD));
     }
 
-    time_t get_thermostat_timestamp(esphome::ESPTime *out_timestamp) const;
+    struct tm get_thermostat_timestamp() const;
     uint8_t get_auto_mode() const;
     float get_heat_setpoint() const;
     float get_cool_setpoint() const;
@@ -601,7 +598,7 @@ namespace itp_packet
       pkt_.set_payload_byte(0, static_cast<uint8_t>(GetCommand::THERMOSTAT_STATE_DOWNLOAD));
     }
 
-    ThermostatStateDownloadResponsePacket &set_timestamp(esphome::ESPTime ts);
+    ThermostatStateDownloadResponsePacket &set_timestamp(time_t ts);
     ThermostatStateDownloadResponsePacket &set_auto_mode(bool is_auto);
     ThermostatStateDownloadResponsePacket &set_heat_setpoint(float high_temp);
     ThermostatStateDownloadResponsePacket &set_cool_setpoint(float low_temp);

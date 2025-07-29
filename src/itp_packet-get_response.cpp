@@ -1,6 +1,5 @@
 #include "itp_packet.h"
 #include "itp_utils.h"
-#include "esphome/core/datatypes.h"
 
 namespace itp_packet
 {
@@ -16,13 +15,13 @@ namespace itp_packet
   }
   std::string SettingsGetResponsePacket::to_string() const
   {
-    return ("Settings Response: " + Packet::to_string() + CONSOLE_COLOR_PURPLE + "\n Fan:" + esphome::format_hex(get_fan()) +
-            " Mode:" + esphome::format_hex(get_mode()) + " Power:" +
+    return ("Settings Response: " + Packet::to_string() + CONSOLE_COLOR_PURPLE + "\n Fan:" + ITPUtils::format_hex(get_fan()) +
+            " Mode:" + ITPUtils::format_hex(get_mode()) + " Power:" +
             (get_power() == 3  ? "Test"
              : get_power() > 0 ? "On"
                                : "Off") +
-            " TargetTemp:" + std::to_string(get_target_temp()) + " Vane:" + esphome::format_hex(get_vane()) +
-            " HVane:" + esphome::format_hex(get_horizontal_vane()) + (get_horizontal_vane_msb() ? " (MSB Set)" : "") +
+            " TargetTemp:" + std::to_string(get_target_temp()) + " Vane:" + ITPUtils::format_hex(get_vane()) +
+            " HVane:" + ITPUtils::format_hex(get_horizontal_vane()) + (get_horizontal_vane_msb() ? " (MSB Set)" : "") +
             "\n PowerLock:" + (locked_power() ? "Yes" : "No") + " ModeLock:" + (locked_mode() ? "Yes" : "No") +
             " TempLock:" + (locked_temp() ? "Yes" : "No"));
   }
@@ -32,7 +31,7 @@ namespace itp_packet
             "\n ServiceFilter:" + (service_filter() ? "Yes" : "No") + " Defrost:" + (in_defrost() ? "Yes" : "No") +
             " Preheat:" + (in_preheat() ? "Yes" : "No") + " Standby:" + (in_standby() ? "Yes" : "No") +
             " ActualFan:" + ACTUAL_FAN_SPEED_NAMES[get_actual_fan_speed()] + " (" +
-            std::to_string(get_actual_fan_speed()) + ")" + " AutoMode:" + esphome::format_hex(get_auto_mode()));
+            std::to_string(get_actual_fan_speed()) + ")" + " AutoMode:" + ITPUtils::format_hex(get_auto_mode()));
   }
   std::string StatusGetResponsePacket::to_string() const
   {
@@ -45,8 +44,8 @@ namespace itp_packet
   std::string ErrorStateGetResponsePacket::to_string() const
   {
     return ("Error State Response: " + Packet::to_string() + CONSOLE_COLOR_PURPLE +
-            "\n Error State: " + (error_present() ? "Yes" : "No") + " ErrorCode: " + esphome::format_hex(get_error_code()) +
-            " ShortCode: " + get_short_code() + "(" + esphome::format_hex(get_raw_short_code()) + ")");
+            "\n Error State: " + (error_present() ? "Yes" : "No") + " ErrorCode: " + ITPUtils::format_hex(get_error_code()) +
+            " ShortCode: " + get_short_code() + "(" + ITPUtils::format_hex(get_raw_short_code()) + ")");
   }
   std::string Functions1GetResponsePacket::to_string() const
   {
