@@ -1,9 +1,10 @@
 #pragma once
 
-#include <itp_utils.h>
 #include <cstring>
 #include <stdint.h>
 #include <type_traits>
+#include <bit>
+#include <itp_utils.h>
 
 namespace itp_packet
 {

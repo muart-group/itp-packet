@@ -1,8 +1,11 @@
 #pragma once
 
+#include <bit>
+#include <cstring>
 #include <math.h>
-#include <vector>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 namespace itp_packet
 {
@@ -124,10 +127,23 @@ namespace itp_packet
     template <typename T>
     typename std::enable_if<std::is_unsigned<T>::value, std::string>::type static format_hex(T val)
     {
-      val = convert_big_endian(val);
+      val = to_big_endian(val);
       return format_hex(reinterpret_cast<uint8_t *>(&val), sizeof(T));
     }
     // END copied-from
+
+    template <typename T>
+    static constexpr T to_big_endian(T val)
+    {
+      if constexpr (std::endian::native == std::endian::little)
+      {
+        return std::byteswap(val);
+      }
+      else
+      {
+        return val;
+      }
+    }
 
   private:
     /// Extract the specified bits (inclusive) from an arbitrarily-sized byte array. Does not perform bounds checks.

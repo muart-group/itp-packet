@@ -1,7 +1,7 @@
+#include <time.h>
+
 #include "itp_packet.h"
 #include "itp_utils.h"
-#include <time.h>
-#include <bit>
 
 namespace itp_packet
 {
@@ -262,10 +262,7 @@ namespace itp_packet
     std::memcpy(&raw_timestamp, pkt_.get_payload_bytes(PLINDEX_THERMOSTAT_TIMESTAMP), 4);
 
     // Incoming data from thermostat is big-endian, ensure that it's still that way for bitwise operations
-    if constexpr (std::endian::native == std::endian::little)
-    {
-      raw_timestamp = std::byteswap(raw_timestamp);
-    }
+    raw_timestamp = ITPUtils::to_big_endian(raw_timestamp);
 
     struct tm return_timestamp;
 

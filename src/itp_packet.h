@@ -1,13 +1,11 @@
 #pragma once
 
-// #include "esphome/core/component.h"
-//#include "esphome/components/climate/climate.h"
-// #include "esphome/components/uart/uart.h"
+#include <array>
+#include <cstring>
+#include <sstream>
+#include <string>
 #include "itp_rawpacket.h"
 #include "itp_utils.h"
-//#include "esphome/core/time.h"
-#include <array>
-#include <sstream>
 
 namespace itp_packet
 {
