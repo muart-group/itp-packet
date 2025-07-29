@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./packet.h"
+#include "itp_packet.h"
 
 namespace itp_packet {
 class IdentifyCDRequestPacket : public Packet {
