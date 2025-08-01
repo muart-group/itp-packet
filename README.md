@@ -1,5 +1,7 @@
 # itp-packet
-Packet parsing, generation, and utilities for the ITP protocol
+### Packet parsing, generation, and utilities for the ITP protocol.
+Originally extracted from the [Mitsubishi ITP ESPHome component](https://github.com/muart-group/esphome-components/tree/dev/components/mitsubishi_itp), this library's goal is to abstract the handling of ITP packets' inner workings and quirks to allow components to focus on the high-level meaning of each packet (i.e. providing functions and enums instead of requiring direct byte manipulation).
+
 
 ## Usage
 In the [Mitsubishi ITP ESPHome component](https://github.com/muart-group/esphome-components/tree/dev/components/mitsubishi_itp) this library is primarily used by:
