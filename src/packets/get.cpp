@@ -94,8 +94,9 @@ float CurrentTempGetResponsePacket::get_current_temp() const {
 float CurrentTempGetResponsePacket::get_outdoor_temp() const {
   uint8_t enhanced_raw_temp = pkt_.get_payload_byte(PLINDEX_OUTDOORTEMP);
 
-  // Return NAN if unsupported
-  return enhanced_raw_temp == 0 ? NAN : ITPUtils::temp_scale_a_to_deg_c(enhanced_raw_temp);
+  // Byte can sometimes be 0x00 (unsupported?) or 0x01 (supported but not reading); only
+  // return value if it's expected to be the actual temperature.
+  return enhanced_raw_temp <= 1 ? NAN : ITPUtils::temp_scale_a_to_deg_c(enhanced_raw_temp);
 }
 
 uint32_t CurrentTempGetResponsePacket::get_runtime_minutes() const {
