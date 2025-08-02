@@ -104,9 +104,10 @@ class RemoteTemperatureSetRequestPacket : public Packet {
   using Packet::Packet;
 
   float get_remote_temperature() const;
-
   RemoteTemperatureSetRequestPacket &set_remote_temperature(float temperature_degrees_c);
-  RemoteTemperatureSetRequestPacket &use_internal_temperature();
+
+  bool get_use_internal_temperature() const;
+  RemoteTemperatureSetRequestPacket &set_use_internal_temperature(bool use_internal = true);
 
   std::string to_string() const override;
 };

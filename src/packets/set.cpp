@@ -122,8 +122,11 @@ RemoteTemperatureSetRequestPacket &RemoteTemperatureSetRequestPacket::set_remote
   }
   return *this;
 }
-RemoteTemperatureSetRequestPacket &RemoteTemperatureSetRequestPacket::use_internal_temperature() {
-  set_flags(0x00);  // Set flags to say to use internal temperature
+
+bool RemoteTemperatureSetRequestPacket::get_use_internal_temperature() const { return 0x00 == get_flags() & 0x01; }
+
+RemoteTemperatureSetRequestPacket &RemoteTemperatureSetRequestPacket::set_use_internal_temperature(bool use_internal) {
+  set_flags(use_internal ? 0x00 : 0x01);  // Set flags to say to use internal temperature
   return *this;
 }
 
