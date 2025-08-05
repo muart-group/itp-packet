@@ -19,7 +19,10 @@ std::string Packet::to_string() const {
     return "";
   std::stringstream stream;
 
-  stream << CONSOLE_COLOR_CYAN;  // Cyan
+  stream << CONSOLE_COLOR_GRAY;
+  stream << '(' << std::to_string(this->get_sequence()) << ')';
+
+  stream << CONSOLE_COLOR_CYAN;
   stream << '[';
 
   for (size_t i = 0; i < PACKET_HEADER_SIZE; i++) {

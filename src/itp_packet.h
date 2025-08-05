@@ -11,6 +11,7 @@ namespace itp_packet {
 static constexpr char PACKETS_TAG[] = "mitsubishi_itp.packets";
 
 #define CONSOLE_COLOR_NONE "\033[0m"
+#define CONSOLE_COLOR_GRAY "\033[0;30m"
 #define CONSOLE_COLOR_GREEN "\033[0;32m"
 #define CONSOLE_COLOR_PURPLE "\033[0;35m"
 #define CONSOLE_COLOR_CYAN "\033[0;36m"
@@ -62,11 +63,16 @@ class Packet {
   SourceBridge get_source_bridge() const { return pkt_.get_source_bridge(); }
   ControllerAssociation get_controller_association() const { return pkt_.get_controller_association(); }
 
+  void set_sequence(const uint8_t seq) { sequence_num_ = seq; }
+  uint8_t get_sequence() const { return sequence_num_; }
+
  protected:
   static const int PLINDEX_FLAGS = 1;
   static const int PLINDEX_FLAGS2 = 2;
 
   RawPacket pkt_;
+  static inline uint8_t next_seq_ = 0;
+  uint8_t sequence_num_ = next_seq_++;  // Assign a new sequencenumber (not guaranteed contiguous)
 
  private:
   bool response_expected_ = true;
