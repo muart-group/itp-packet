@@ -24,8 +24,8 @@ uint8_t CapabilitiesResponsePacket::get_supported_fan_speeds() const {
 
 std::string CapabilitiesResponsePacket::to_string() const {
   return (
-      "Identify Base Capabilities Response: " + Packet::to_string() + CONSOLE_COLOR_PURPLE +
-      "\n HeatDisabled:" + (is_heat_disabled() ? "Yes" : "No") + " SupportsVane:" + (supports_vane() ? "Yes" : "No") +
+      "Identify Base Capabilities Response: " + Packet::to_string() + "\n " + CONSOLE_COLOR_PURPLE +
+      "HeatDisabled:" + (is_heat_disabled() ? "Yes" : "No") + " SupportsVane:" + (supports_vane() ? "Yes" : "No") +
       " SupportsVaneSwing:" + (supports_vane_swing() ? "Yes" : "No")
 
       + " DryDisabled:" + (is_dry_disabled() ? "Yes" : "No") + " FanDisabled:" + (is_fan_disabled() ? "Yes" : "No") +
@@ -36,7 +36,7 @@ std::string CapabilitiesResponsePacket::to_string() const {
 
       + " StatusDisplay:" + (has_status_display() ? "Yes" : "No")
 
-      + "\n CoolDrySetpoint:" + std::to_string(get_min_cool_dry_setpoint()) + "/" +
+      + "\n " + CONSOLE_COLOR_PURPLE + "CoolDrySetpoint:" + std::to_string(get_min_cool_dry_setpoint()) + "/" +
       std::to_string(get_max_cool_dry_setpoint()) + " HeatSetpoint:" + std::to_string(get_min_heating_setpoint()) +
       "/" + std::to_string(get_max_heating_setpoint()) + " AutoSetpoint:" + std::to_string(get_min_auto_setpoint()) +
       "/" + std::to_string(get_max_auto_setpoint()) + " FanSpeeds:" + std::to_string(get_supported_fan_speeds()));

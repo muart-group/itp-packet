@@ -2,15 +2,15 @@
 
 namespace itp_packet {
 std::string RemoteTemperatureSetRequestPacket::to_string() const {
-  return ("Remote Temp Set Request: " + Packet::to_string() + CONSOLE_COLOR_PURPLE +
-          "\n Temp:" + std::to_string(get_remote_temperature()));
+  return ("Remote Temp Set Request: " + Packet::to_string() + "\n " + CONSOLE_COLOR_PURPLE +
+          "Temp:" + std::to_string(get_remote_temperature()));
 }
 std::string SettingsSetRequestPacket::to_string() const {
   uint8_t flags = get_flags();
   uint8_t flags2 = get_flags_2();
 
-  std::string result = "Settings Set Request: " + Packet::to_string() + CONSOLE_COLOR_PURPLE +
-                       "\n Flags: " + ITPUtils::format_hex(flags2) + ITPUtils::format_hex(flags) + " =>";
+  std::string result = "Settings Set Request: " + Packet::to_string() + "\n " + CONSOLE_COLOR_PURPLE +
+                       "Flags: " + ITPUtils::format_hex(flags2) + ITPUtils::format_hex(flags) + " =>";
 
   if (flags & SettingFlag::SF_POWER)
     result += " Power: " + std::to_string(get_power());
