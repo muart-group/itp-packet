@@ -34,6 +34,10 @@ class GetRequestPacket : public Packet {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::FUNCTIONS_2);
     return instance;
   }
+  static GetRequestPacket &get_zone_instance() {
+    static GetRequestPacket instance = GetRequestPacket(GetCommand::ZONE_STATE);
+    return instance;
+  }
   using Packet::Packet;
 
   GetCommand get_requested_command() const { return (GetCommand) pkt_.get_payload_byte(0); }

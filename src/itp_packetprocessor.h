@@ -26,6 +26,7 @@ class PacketProcessor {
   virtual void process_packet(const ThermostatStateDownloadResponsePacket &packet){};
   virtual void process_packet(const ThermostatAASetRequestPacket &packet){};
   virtual void process_packet(const ThermostatABGetResponsePacket &packet){};
+  virtual void process_packet(const ZoneGetResponsePacket &packet){};
   virtual void process_packet(const SetResponsePacket &packet){};
 
   virtual void handle_thermostat_state_download_request(const GetRequestPacket &packet){};
