@@ -6,3 +6,4 @@
 #include "packets/identify.h"
 #include "packets/set.h"
 #include "packets/thermostat.h"
+#include "packets/zone.h"
