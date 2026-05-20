@@ -4,22 +4,23 @@
 
 namespace itp_packet {
 
-static const uint8_t ZONE_COUNT = 8;
+// Number of zone bytes in packet
+static const uint8_t ZONE_BYTES_COUNT = 8;
 
 class ZoneGetResponsePacket : public Packet {
-  static const int PLINDEX_ZONE_BASE = 3;
+  static const int PLINDEX_ZONE_OFFSET = 3;
 
   using Packet::Packet;
 
  public:
-  bool get_zone_active(uint8_t zone) const { return pkt_.get_payload_byte(PLINDEX_ZONE_BASE + zone) != 0; }
+  bool get_zone_active(uint8_t zone) const { return pkt_.get_payload_byte(PLINDEX_ZONE_OFFSET + zone) != 0; }
 
   std::string to_string() const override;
 };
 
 class ZoneSetRequestPacket : public Packet {
   static const int PLINDEX_ZONE_MASK = 1;
-  static const int PLINDEX_ZONE_BASE = 3;
+  static const int PLINDEX_ZONE_OFFSET = 3;
 
  public:
   ZoneSetRequestPacket() : Packet(RawPacket(PacketType::SET_REQUEST, 16)) {
