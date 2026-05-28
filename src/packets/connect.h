@@ -23,7 +23,14 @@ class ConnectRequestPacket : public Packet {
 class ConnectResponsePacket : public Packet {
  public:
   using Packet::Packet;
+  static ConnectResponsePacket &instance() {
+    static ConnectResponsePacket instance;
+    return instance;
+  }
   std::string to_string() const override;
+
+ private:
+  ConnectResponsePacket() : Packet(RawPacket(PacketType::CONNECT_RESPONSE, 1)) { pkt_.set_payload_byte(0, 0x00); }
 };
 
 }  // namespace itp_packet
