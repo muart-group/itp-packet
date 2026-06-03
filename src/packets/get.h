@@ -109,6 +109,10 @@ class StatusGetResponsePacket : public Packet {
   using Packet::Packet;
 
  public:
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::STATUS);
+  }
   uint8_t get_compressor_frequency() const { return pkt_.get_payload_byte(PLINDEX_COMPRESSOR_FREQUENCY); }
   bool get_operating() const { return pkt_.get_payload_byte(PLINDEX_OPERATING); }
   uint16_t get_input_watts() const {

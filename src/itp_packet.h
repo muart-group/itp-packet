@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstring>
+#include <optional>
 #include <sstream>
 #include <string>
 #include "itp_rawpacket.h"
@@ -19,7 +20,7 @@ static constexpr char PACKETS_TAG[] = "mitsubishi_itp.packets";
 #define CONSOLE_COLOR_WHITE "\033[0;37m"
 
 // Defined as constant for use as a Custom Fan Mode
-inline const char* FAN_MODE_VERYHIGH = "Very High";
+inline const char *FAN_MODE_VERYHIGH = "Very High";
 
 // These are named to match with set fan speeds where possible.  "Very Low" is a special speed
 // for e.g. preheating or thermal off.
@@ -33,11 +34,21 @@ class PacketProcessor;
 // Generic Base Packet wrapper over RawPacket
 class Packet {
  public:
+  // TODO: Can I hide these in favor of from_rawpacket?
   Packet(RawPacket &&pkt) : pkt_(pkt){};  // TODO: Confirm this needs std::move if call to constructor ALSO has move
   Packet();                               // For optional<> construction
 
   // Returns a (more) human-readable string of the packet
   virtual std::string to_string() const;
+
+  // static bool validate_type(RawPacket &pkt) { return false; };  // No packet can be a generic packet, just return
+  // false
+
+  template<class PType> static std::optional<PType> try_from_raw(RawPacket &&pkt) {
+    if (PType::validate_type(pkt))
+      return PType(std::move(pkt));
+    return std::nullopt;
+  }
 
   // Is a response packet expected when this packet is sent.  Defaults to true since
   // most requests receive a response.
