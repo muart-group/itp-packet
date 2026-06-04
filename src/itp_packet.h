@@ -89,4 +89,12 @@ class Packet {
   bool response_expected_ = true;
 };
 
+// Concrete class for unknown packets so that validate_type will return true.
+class UnknownPacket : public Packet {
+ public:
+  using Packet::Packet;
+  std::string to_string() const override { return Packet::to_string(); };
+  static bool validate_type(const RawPacket &pkt) { return true; }
+};
+
 }  // namespace itp_packet

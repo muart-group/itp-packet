@@ -12,6 +12,9 @@ class ConnectRequestPacket : public Packet {
   }
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::CONNECT_REQUEST);
+  }
 
  private:
   ConnectRequestPacket() : Packet(RawPacket(PacketType::CONNECT_REQUEST, 2)) {
@@ -24,6 +27,9 @@ class ConnectResponsePacket : public Packet {
  public:
   using Packet::Packet;
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::CONNECT_RESPONSE);
+  }
 };
 
 }  // namespace itp_packet

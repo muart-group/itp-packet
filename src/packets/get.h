@@ -79,6 +79,10 @@ class SettingsGetResponsePacket : public Packet {
   SettingsGetResponsePacket &set_target_temperature(float temperature_degrees_c);
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::SETTINGS);
+  }
 };
 
 class CurrentTempGetResponsePacket : public Packet {
@@ -98,6 +102,10 @@ class CurrentTempGetResponsePacket : public Packet {
   CurrentTempGetResponsePacket &set_current_temperature(float temperature_degrees_c);
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::CURRENT_TEMP);
+  }
 };
 
 class StatusGetResponsePacket : public Packet {
@@ -109,10 +117,6 @@ class StatusGetResponsePacket : public Packet {
   using Packet::Packet;
 
  public:
-  static bool validate_type(const RawPacket &pkt) {
-    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
-           pkt.get_command() == static_cast<uint8_t>(GetCommand::STATUS);
-  }
   uint8_t get_compressor_frequency() const { return pkt_.get_payload_byte(PLINDEX_COMPRESSOR_FREQUENCY); }
   bool get_operating() const { return pkt_.get_payload_byte(PLINDEX_OPERATING); }
   uint16_t get_input_watts() const {
@@ -120,6 +124,10 @@ class StatusGetResponsePacket : public Packet {
   }
   float get_lifetime_kwh() const;
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::STATUS);
+  }
 };
 
 class RunStateGetResponsePacket : public Packet {
@@ -136,6 +144,10 @@ class RunStateGetResponsePacket : public Packet {
   uint8_t get_actual_fan_speed() const { return pkt_.get_payload_byte(PLINDEX_ACTUALFAN); }
   uint8_t get_auto_mode() const { return pkt_.get_payload_byte(PLINDEX_AUTOMODE); }
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::RUN_STATE);
+  }
 };
 
 class ErrorStateGetResponsePacket : public Packet {
@@ -149,6 +161,10 @@ class ErrorStateGetResponsePacket : public Packet {
   bool error_present() const { return get_error_code() != 0x8000 || get_raw_short_code() != 0x00; }
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::ERROR_INFO);
+  }
 };
 
 class Functions1GetResponsePacket : public Packet {
