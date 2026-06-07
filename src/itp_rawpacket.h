@@ -84,6 +84,11 @@ class RawPacket {
             ControllerAssociation controller_association = ControllerAssociation::MITP);  // For building packets
   virtual ~RawPacket() {}
 
+  // Only the raw bytes are compared; this ignores source bridge and controller association
+  bool operator==(const RawPacket &other) const {
+    return length_ == other.length_ && std::memcmp(packet_bytes_, other.packet_bytes_, length_) == 0;
+  }
+
   virtual std::string to_string() const { return ITPUtils::format_hex_pretty(&get_bytes()[0], get_length()); };
 
   uint8_t get_length() const { return length_; };
@@ -96,8 +101,15 @@ class RawPacket {
   // Returns the first byte of the payload, often used as a command
   uint8_t get_command() const { return get_payload_byte(PLINDEX_COMMAND); };
 
-  SourceBridge get_source_bridge() const { return source_bridge_; };
-  ControllerAssociation get_controller_association() const { return controller_association_; };
+  [[deprecated("Not inherently part of ITP, should be implemented elsewhere.")]] SourceBridge get_source_bridge()
+      const {
+    return source_bridge_;
+  };
+
+  [[deprecated("Not inherently part of ITP, should be implemented elsewhere.")]] ControllerAssociation
+  get_controller_association() const {
+    return controller_association_;
+  };
 
   RawPacket &set_payload_byte(uint8_t payload_byte_index, uint8_t value);
   RawPacket &set_payload_bytes(uint8_t begin_index, const void *value, size_t size);

@@ -38,6 +38,10 @@ class Packet {
   Packet(RawPacket &&pkt) : pkt_(pkt){};  // TODO: Confirm this needs std::move if call to constructor ALSO has move
   Packet();                               // For optional<> construction
 
+  // Only compares inner raw packet (ignoring extras like sequence_num and response_expected which should probably be
+  // implemented elsewhere anyway)
+  bool operator==(const Packet &other) const { return pkt_ == other.pkt_; }
+
   // Returns a (more) human-readable string of the packet
   virtual std::string to_string() const;
 
@@ -52,6 +56,8 @@ class Packet {
 
   // Is a response packet expected when this packet is sent.  Defaults to true since
   // most requests receive a response.
+  // TODO: This should probably be inherent to the packet type rather than set dynamically
+  // As far as we know ALL supported packets expect a response, and a lack of response is just a lack of support
   bool is_response_expected() const { return response_expected_; };
   void set_response_expected(bool expect_response) { response_expected_ = expect_response; };
 
@@ -71,8 +77,14 @@ class Packet {
   // Adds a flag2 (ONLY APPLICABLE FOR SOME COMMANDS)
   void add_flag2(uint8_t flag2_to_add);
 
-  SourceBridge get_source_bridge() const { return pkt_.get_source_bridge(); }
-  ControllerAssociation get_controller_association() const { return pkt_.get_controller_association(); }
+  [[deprecated("Not inherently part of ITP, should be implemented elsewhere.")]] SourceBridge get_source_bridge()
+      const {
+    return pkt_.get_source_bridge();
+  }
+  [[deprecated("Not inherently part of ITP, should be implemented elsewhere.")]] ControllerAssociation
+  get_controller_association() const {
+    return pkt_.get_controller_association();
+  }
 
   void set_sequence(const uint8_t seq) { sequence_num_ = seq; }
   uint8_t get_sequence() const { return sequence_num_; }
