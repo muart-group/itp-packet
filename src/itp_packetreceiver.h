@@ -36,7 +36,7 @@ class ThermostatPacketReceiver {
   virtual void receive_packet(const ThermostatStateDownloadResponsePacket &packet){};
   virtual void receive_packet(const ThermostatStateUploadPacket &packet){};
 
-  virtual void handle_thermostat_state_download_request(const GetRequestPacket &packet){};
-  virtual void handle_thermostat_ab_get_request(const GetRequestPacket &packet){};
+  // virtual void handle_thermostat_state_download_request(const GetRequestPacket &packet){};
+  // virtual void handle_thermostat_ab_get_request(const GetRequestPacket &packet){};
 };
 }  // namespace itp_packet

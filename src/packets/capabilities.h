@@ -51,6 +51,9 @@ class CapabilitiesResponsePacket : public Packet {
   uint8_t get_supported_fan_speeds() const;
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::IDENTIFY_RESPONSE);
+  }
 };
 
 }  // namespace itp_packet
