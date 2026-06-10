@@ -54,13 +54,6 @@ enum class SetCommand : uint8_t {
   THERMOSTAT_SET_AA = 0xaa,
 };
 
-// Which MITPBridge was the packet read from (used to determine flow direction of the packet)
-enum class SourceBridge { NONE, HEATPUMP, THERMOSTAT };
-
-// Specifies which controller the packet "belongs" to (i.e. which controler created it either directly or via a request
-// packet)
-enum class ControllerAssociation { MITP, THERMOSTAT };
-
 static const uint8_t EMPTY_PACKET[PACKET_MAX_SIZE] = {BYTE_CONTROL,        // Sync
                                                       0x00,                // Packet type
                                                       0x01,         0x30,  // Unknown
@@ -75,13 +68,10 @@ directly outside the MITPBridge, and the Packet class (or its subclasses) should
 */
 class RawPacket {
  public:
-  RawPacket(
-      const uint8_t packet_bytes[], uint8_t packet_length, SourceBridge source_bridge = SourceBridge::NONE,
-      ControllerAssociation controller_association = ControllerAssociation::MITP);  // For reading or copying packets
+  RawPacket(const uint8_t packet_bytes[], uint8_t packet_length);  // For reading or copying packets
   // TODO: Can I hide this constructor except from optional?
-  RawPacket();  // For optional<RawPacket> construction
-  RawPacket(PacketType packet_type, uint8_t payload_size, SourceBridge source_bridge = SourceBridge::NONE,
-            ControllerAssociation controller_association = ControllerAssociation::MITP);  // For building packets
+  RawPacket();                                              // For optional<RawPacket> construction
+  RawPacket(PacketType packet_type, uint8_t payload_size);  // For building packets
   virtual ~RawPacket() {}
 
   // Only the raw bytes are compared; this ignores source bridge and controller association
@@ -101,16 +91,6 @@ class RawPacket {
   // Returns the first byte of the payload, often used as a command
   uint8_t get_command() const { return get_payload_byte(PLINDEX_COMMAND); };
 
-  [[deprecated("Not inherently part of ITP, should be implemented elsewhere.")]] SourceBridge get_source_bridge()
-      const {
-    return source_bridge_;
-  };
-
-  [[deprecated("Not inherently part of ITP, should be implemented elsewhere.")]] ControllerAssociation
-  get_controller_association() const {
-    return controller_association_;
-  };
-
   RawPacket &set_payload_byte(uint8_t payload_byte_index, uint8_t value);
   RawPacket &set_payload_bytes(uint8_t begin_index, const void *value, size_t size);
   uint8_t get_payload_byte(const uint8_t payload_byte_index) const {
@@ -126,9 +106,6 @@ class RawPacket {
   uint8_t packet_bytes_[PACKET_MAX_SIZE]{};
   uint8_t length_;
   uint8_t checksum_index_;
-
-  SourceBridge source_bridge_;
-  ControllerAssociation controller_association_;
 
   uint8_t calculate_checksum_() const;
   RawPacket &update_checksum_();

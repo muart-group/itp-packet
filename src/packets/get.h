@@ -172,6 +172,10 @@ class Functions1GetResponsePacket : public Packet {
 
  public:
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::FUNCTIONS_1);
+  }
 };
 
 class Functions2GetResponsePacket : public Packet {
@@ -179,5 +183,9 @@ class Functions2GetResponsePacket : public Packet {
 
  public:
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::FUNCTIONS_2);
+  }
 };
 }  // namespace itp_packet

@@ -110,6 +110,10 @@ class RemoteTemperatureSetRequestPacket : public Packet {
   RemoteTemperatureSetRequestPacket &set_use_internal_temperature(bool use_internal = true);
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::SET_REQUEST) &&
+           pkt.get_command() == static_cast<uint8_t>(SetCommand::REMOTE_TEMPERATURE);
+  }
 };
 
 class SetResponsePacket : public Packet {
@@ -120,6 +124,9 @@ class SetResponsePacket : public Packet {
 
   uint8_t get_result_code() const { return pkt_.get_payload_byte(0); }
   bool is_successful() const { return get_result_code() == 0; }
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::SET_RESPONSE);
+  }
 };
 
 class SetRunStatePacket : public Packet {

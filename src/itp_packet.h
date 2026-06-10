@@ -77,15 +77,6 @@ class Packet {
   // Adds a flag2 (ONLY APPLICABLE FOR SOME COMMANDS)
   void add_flag2(uint8_t flag2_to_add);
 
-  [[deprecated("Not inherently part of ITP, should be implemented elsewhere.")]] SourceBridge get_source_bridge()
-      const {
-    return pkt_.get_source_bridge();
-  }
-  [[deprecated("Not inherently part of ITP, should be implemented elsewhere.")]] ControllerAssociation
-  get_controller_association() const {
-    return pkt_.get_controller_association();
-  }
-
   void set_sequence(const uint8_t seq) { sequence_num_ = seq; }
   uint8_t get_sequence() const { return sequence_num_; }
 
