@@ -67,8 +67,8 @@ struct tm ThermostatStateUploadPacket::get_thermostat_timestamp() const {
   return_timestamp.tm_min = (raw_timestamp >> 6) & 63;
   return_timestamp.tm_hour = (raw_timestamp >> 12) & 31;
   return_timestamp.tm_mday = (raw_timestamp >> 17) & 31;
-  return_timestamp.tm_mon = (raw_timestamp >> 22) & 15;
-  return_timestamp.tm_year = (raw_timestamp >> 26) + 2017;
+  return_timestamp.tm_mon = ((raw_timestamp >> 22) - 1) & 15;
+  return_timestamp.tm_year = (raw_timestamp >> 26) + 117;
 
   // out_timestamp->recalc_timestamp_local();
   return return_timestamp;
@@ -87,11 +87,10 @@ float ThermostatStateUploadPacket::get_cool_setpoint() const {
 }
 
 // ThermostatStateDownloadResponsePacket functions
-ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_timestamp(time_t ts) {
-  // int32_t encoded_timestamp = ((ts.year - 2017) << 26) | (ts.month << 22) | (ts.day_of_month << 17) | (ts.hour << 12)
-  // |
-  //                             (ts.minute << 6) | (ts.second);
-  int32_t encoded_timestamp = (int32_t) ts;
+ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_timestamp(tm time_struct) {
+  int32_t encoded_timestamp = ((time_struct.tm_year - 117) << 26) | ((time_struct.tm_mon + 1) << 22) |
+                              (time_struct.tm_mday << 17) | (time_struct.tm_hour << 12) | (time_struct.tm_min << 6) |
+                              (time_struct.tm_sec);
 
   int32_t swapped_timestamp = __builtin_bswap32(encoded_timestamp);
 

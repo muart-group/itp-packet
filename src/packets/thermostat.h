@@ -99,7 +99,7 @@ class ThermostatStateDownloadResponsePacket : public Packet {
     pkt_.set_payload_byte(0, static_cast<uint8_t>(GetCommand::THERMOSTAT_STATE_DOWNLOAD));
   }
 
-  ThermostatStateDownloadResponsePacket &set_timestamp(time_t ts);
+  ThermostatStateDownloadResponsePacket &set_timestamp(tm time_struct);
   ThermostatStateDownloadResponsePacket &set_auto_mode(bool is_auto);
   ThermostatStateDownloadResponsePacket &set_heat_setpoint(float high_temp);
   ThermostatStateDownloadResponsePacket &set_cool_setpoint(float low_temp);
