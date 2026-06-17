@@ -1,12 +1,15 @@
 #pragma once
 
-#include "queue"
-#include <coroutine>
-#include <variant>
-#include <expected>
+
 #include "itp_requests.h"
 #include "itp_heatpump.h"
 #include "itp_mhk.h"
+#include <coroutine>
+#include <functional>
+#include <queue>
+#include <variant>
+#include <expected>
+
 
 namespace itp_packet {
 
@@ -27,7 +30,7 @@ class Thermostat : public ITPPacketReader {
     RequestType typed_request(std::move(raw_request_packet));
     sys_state_.cache_thermostat_packet(typed_request);
     std::unique_ptr<RequestContext> req = std::make_unique<RequestContext>(typed_request);
-    ESP_LOGV(THERMOSTAT_TAG, "Receiving from thermostat %s", req->request.to_string().c_str());
+    ITP_LOGV(THERMOSTAT_TAG, "Receiving from thermostat %s", req->request.to_string().c_str());
 
     std::optional<ResponseType> response_pkt =
         co_await RequestAwaiter<ResponseType, Heatpump>(std::move(req), connected_heatpump_);
@@ -38,13 +41,13 @@ class Thermostat : public ITPPacketReader {
         response_pkt = ResponseType(adjust_mhk_temperature(response_pkt->raw_packet()));
       }
 
-      ESP_LOGV(THERMOSTAT_TAG, "Sending to thermostat %s", response_pkt.value().to_string().c_str());
+      ITP_LOGV(THERMOSTAT_TAG, "Sending to thermostat %s", response_pkt.value().to_string().c_str());
       write_raw_packet_(response_pkt.value().raw_packet());  // Send to thermostat ASAP
       sys_state_.cache_heatpump_packet(
           *response_pkt);  // Send to SystemState to be cached/forwarded (if it's of the appropriate type)
 
     } else {
-      ESP_LOGW(THERMOSTAT_TAG, "No response to thermostat packet");
+      ITP_LOGW(THERMOSTAT_TAG, "No response to thermostat packet");
     }
   }
 
@@ -75,7 +78,7 @@ class Thermostat : public ITPPacketReader {
   bool mhk_fahrenheit_correction_ = false;
   bool enhanced_mhk_ = false;
   std::function<tm()> get_timestruct_ = []() {
-    ESP_LOGW(THERMOSTAT_TAG, "Time source is not synchronized. Cannot provide accurate time!");
+    ITP_LOGW(THERMOSTAT_TAG, "Time source is not synchronized. Cannot provide accurate time!");
     return tm{.tm_mday = 1, .tm_mon = 0, .tm_year = 124};  // 2024-01-01 00:00:00Z
   };
   MHKState mhk_state_;

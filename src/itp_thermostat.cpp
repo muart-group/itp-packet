@@ -47,14 +47,14 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
         case GetCommand::ZONE_STATE:
           return send_to_heatpump<GetRequestPacket, ZoneGetResponsePacket>(raw_request_packet);
         case GetCommand::THERMOSTAT_STATE_DOWNLOAD:
-          ESP_LOGD(THERMOSTAT_TAG, "Got get download!");
+          ITP_LOGD(THERMOSTAT_TAG, "Got get download!");
           if (enhanced_mhk_) {
             return send_immediately(get_state_download_response());
           } else {
             return send_to_heatpump<GetRequestPacket, ThermostatStateDownloadResponsePacket>(raw_request_packet);
           }
         case GetCommand::THERMOSTAT_GET_AB:
-          ESP_LOGD(THERMOSTAT_TAG, "Got get AB!");
+          ITP_LOGD(THERMOSTAT_TAG, "Got get AB!");
           if (enhanced_mhk_) {
             return send_immediately(ThermostatABGetResponsePacket());
           } else {
@@ -78,9 +78,9 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
         case SetCommand::SETTINGS:
           return send_to_heatpump<SettingsSetRequestPacket, SetResponsePacket>(raw_request_packet);
         case SetCommand::THERMOSTAT_SENSOR_STATUS:
-          ESP_LOGD(THERMOSTAT_TAG, "Got sensor status!");
+          ITP_LOGD(THERMOSTAT_TAG, "Got sensor status!");
           if (enhanced_mhk_) {
-            ESP_LOGD(THERMOSTAT_TAG, "Got sensor status!");
+            ITP_LOGD(THERMOSTAT_TAG, "Got sensor status!");
             // No processing to be done here, it's just forwarded to sensors
             sys_state_.cache_thermostat_packet(ThermostatSensorStatusPacket(std::move(raw_request_packet)), true);
             return send_immediately(SetResponsePacket());
@@ -90,16 +90,16 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
         case SetCommand::THERMOSTAT_HELLO:
           // TODO: Log this info?
           if (enhanced_mhk_) {
-            ESP_LOGD(THERMOSTAT_TAG, "Got Hello!");
+            ITP_LOGD(THERMOSTAT_TAG, "Got Hello!");
             sys_state_.cache_thermostat_packet(ThermostatHelloPacket(std::move(raw_request_packet)), true);
-            ESP_LOGD(THERMOSTAT_TAG, "Sending response to Hello...");
+            ITP_LOGD(THERMOSTAT_TAG, "Sending response to Hello...");
             return send_immediately(SetResponsePacket());
           } else {
             return send_to_heatpump<ThermostatHelloPacket, SetResponsePacket>(raw_request_packet);
           }
 
         case SetCommand::THERMOSTAT_STATE_UPLOAD:
-          ESP_LOGD(THERMOSTAT_TAG, "Got state upload!");
+          ITP_LOGD(THERMOSTAT_TAG, "Got state upload!");
           if (enhanced_mhk_) {
             handle_state_upload(raw_request_packet);
             return send_immediately(SetResponsePacket());
@@ -109,7 +109,7 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
         case SetCommand::ZONE_STATE:
           return send_to_heatpump<ZoneSetRequestPacket, SetResponsePacket>(raw_request_packet);
         case SetCommand::THERMOSTAT_SET_AA:
-          ESP_LOGD(THERMOSTAT_TAG, "Got set AA!");
+          ITP_LOGD(THERMOSTAT_TAG, "Got set AA!");
           if (enhanced_mhk_) {
             return send_immediately(SetResponsePacket());
           } else {
@@ -122,9 +122,9 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
 
     default:
     unknown_packet:
-      ESP_LOGI(THERMOSTAT_TAG, "Unexpected thermostat packet type %s/%s",
-               format_hex_pretty(raw_request_packet.get_packet_type()).c_str(),
-               format_hex_pretty(raw_request_packet.get_command()).c_str());
+      ITP_LOGI(THERMOSTAT_TAG, "Unexpected thermostat packet type %02X/%02X",
+               raw_request_packet.get_packet_type(),
+               raw_request_packet.get_command());
       return send_to_heatpump<Packet, UnknownPacket>(raw_request_packet);
   };
 }
@@ -143,36 +143,36 @@ RawPacket Thermostat::adjust_mhk_temperature(RawPacket &raw_pkt) {
   if (raw_pkt.get_packet_type() == static_cast<uint8_t>(PacketType::SET_REQUEST) &&
       raw_pkt.get_command() == static_cast<uint8_t>(SetCommand::REMOTE_TEMPERATURE)) {
     RemoteTemperatureSetRequestPacket temp_pkt = RemoteTemperatureSetRequestPacket(std::move(raw_pkt));
-    ESP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_remote_temperature());
+    ITP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_remote_temperature());
     temp_pkt.set_remote_temperature(mhk_temp_to_actual(temp_pkt.get_remote_temperature()));
-    ESP_LOGV(THERMOSTAT_TAG, "Adjusted MHK temp to %f", temp_pkt.get_remote_temperature());
+    ITP_LOGV(THERMOSTAT_TAG, "Adjusted MHK temp to %f", temp_pkt.get_remote_temperature());
     return temp_pkt.raw_packet();
   }
   // Set Target
   else if (raw_pkt.get_packet_type() == static_cast<uint8_t>(PacketType::SET_REQUEST) &&
            raw_pkt.get_command() == static_cast<uint8_t>(SetCommand::SETTINGS)) {
     SettingsSetRequestPacket temp_pkt = SettingsSetRequestPacket(std::move(raw_pkt));
-    ESP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_target_temp());
+    ITP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_target_temp());
     temp_pkt.set_target_temperature(mhk_temp_to_actual(temp_pkt.get_target_temp()));
-    ESP_LOGV(THERMOSTAT_TAG, "Adjusted MHK temp to %f", temp_pkt.get_target_temp());
+    ITP_LOGV(THERMOSTAT_TAG, "Adjusted MHK temp to %f", temp_pkt.get_target_temp());
     return temp_pkt.raw_packet();
   }
   // Get Current
   else if (raw_pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
            raw_pkt.get_command() == static_cast<uint8_t>(GetCommand::CURRENT_TEMP)) {
     CurrentTempGetResponsePacket temp_pkt = CurrentTempGetResponsePacket(std::move(raw_pkt));
-    ESP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_current_temp());
+    ITP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_current_temp());
     temp_pkt.set_current_temperature(mhk_temp_from_actual(temp_pkt.get_current_temp()));
-    ESP_LOGV(THERMOSTAT_TAG, "Adjusted MHK temp to %f", temp_pkt.get_current_temp());
+    ITP_LOGV(THERMOSTAT_TAG, "Adjusted MHK temp to %f", temp_pkt.get_current_temp());
     return temp_pkt.raw_packet();
   }
   // Get Target
   else if (raw_pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
            raw_pkt.get_command() == static_cast<uint8_t>(SetCommand::SETTINGS)) {
     SettingsGetResponsePacket temp_pkt = SettingsGetResponsePacket(std::move(raw_pkt));
-    ESP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_target_temp());
+    ITP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_target_temp());
     temp_pkt.set_target_temperature(mhk_temp_from_actual(temp_pkt.get_target_temp()));
-    ESP_LOGV(THERMOSTAT_TAG, "Adjusted MHK temp to %f", temp_pkt.get_target_temp());
+    ITP_LOGV(THERMOSTAT_TAG, "Adjusted MHK temp to %f", temp_pkt.get_target_temp());
     return temp_pkt.raw_packet();
   } else {
     return raw_pkt;
@@ -205,7 +205,7 @@ ThermostatStateDownloadResponsePacket Thermostat::get_state_download_response() 
   //   response.set_cool_setpoint(mhk_f_correction_ ? mhk_temp_from_actual(this->mhk_state_.cool_setpoint_)
   //                                                : this->mhk_state_.cool_setpoint_);
 
-  ESP_LOGD(THERMOSTAT_TAG, "Sending %s", response.to_string().c_str());
+  ITP_LOGD(THERMOSTAT_TAG, "Sending %s", response.to_string().c_str());
 
   return response;
 }

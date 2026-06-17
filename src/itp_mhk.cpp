@@ -1,4 +1,4 @@
-#include "mitp_mhk.h"
+#include "itp_mhk.h"
 #include <map>
 
 namespace esphome {

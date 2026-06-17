@@ -4,6 +4,7 @@
 #include "itp_packet.h"
 #include "itp_packets.h"
 #include <coroutine>
+#include <memory>
 #include <queue>
 
 namespace itp_packet {
@@ -103,10 +104,10 @@ template<class PType, class RequestHandler> struct RequestAwaiter {
   RequestContext *ctx_ptr;
   RequestHandler &request_handler;
 
-  RequestAwaiter(std::unique_ptr<RequestContext> &&req, RequestHandler &handler)
+  RequestAwaiter(std::unique_ptr<itp_packet::RequestContext> &&req, RequestHandler &handler)
       : ctx_ptr(req.get()), request_handler(handler) {
     request_handler.enqueue_request(std::move(req));  // Handler takes ownership
-  }
+  };
 
   bool await_ready() const noexcept { return false; }
 

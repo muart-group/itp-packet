@@ -1,12 +1,13 @@
 #pragma once
 
+#include "itp_rawpacket.h"
+#include "itp_utils.h"
 #include <array>
 #include <cstring>
 #include <optional>
 #include <sstream>
 #include <string>
-#include "itp_rawpacket.h"
-#include "itp_utils.h"
+
 
 namespace itp_packet {
 static constexpr char PACKETS_TAG[] = "mitsubishi_itp.packets";
