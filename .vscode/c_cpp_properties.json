@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/workspaces/itp-packet/src/**"
+            ],
+            "defines": [
+                // "USE_ESP32"
+                "USE_HOST"
+            ],
+            "compilerPath": "/usr/bin/clang-18",
+            "cStandard": "c23",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}

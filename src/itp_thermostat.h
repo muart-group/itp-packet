@@ -6,7 +6,7 @@
 #include <expected>
 #include "itp_requests.h"
 #include "itp_heatpump.h"
-#include "mitp_mhk.h"
+#include "itp_mhk.h"
 
 namespace itp_packet {
 
@@ -14,7 +14,7 @@ static constexpr char THERMOSTAT_TAG[] = "mitsubishi_itp.thermostat";
 
 class Thermostat : public ITPPacketReader {
  public:
-  Thermostat(uart::UARTComponent *uart_component, Heatpump *connected_heatpump, ITPSystemState *sys_state);
+  Thermostat(ITPByteProvider *byte_provider, Heatpump *connected_heatpump, ITPSystemState *sys_state);
   void loop();
 
   void intercept_remote_temperatures(bool do_intercept) { intercept_remote_temp_ = do_intercept; };
@@ -29,7 +29,7 @@ class Thermostat : public ITPPacketReader {
     std::unique_ptr<RequestContext> req = std::make_unique<RequestContext>(typed_request);
     ESP_LOGV(THERMOSTAT_TAG, "Receiving from thermostat %s", req->request.to_string().c_str());
 
-    optional<ResponseType> response_pkt =
+    std::optional<ResponseType> response_pkt =
         co_await RequestAwaiter<ResponseType, Heatpump>(std::move(req), connected_heatpump_);
 
     if (response_pkt) {

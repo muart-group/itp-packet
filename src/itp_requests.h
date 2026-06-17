@@ -1,6 +1,6 @@
 #pragma once
 
-#include <esp_log.h>
+#include "itp_log.h"
 #include "itp_packet.h"
 #include "itp_packets.h"
 #include <coroutine>
@@ -13,23 +13,24 @@ static constexpr char REQUESTS_TAG[] = "mitsubishi_itp.requests";
 //
 class ITPByteProvider {
  public:
-  virtual int available() = 0;
-  virtual uint8_t read_byte() = 0;
-  virtual size_t write_array(const uint8_t *data, size_t len) = 0;
+  virtual size_t available() = 0;
+  virtual bool read_array(uint8_t *data, size_t len) = 0;
+  virtual bool read_byte(uint8_t *data) = 0;
+  virtual void write_array(const uint8_t *data, size_t len) = 0;
   virtual ~ITPByteProvider() = default;
-}
+};
 
 // Common base class for heatpumps and thermostats to provide packet buffer and check_for_packet functionality
 class ITPPacketReader {
  public:
-  ITPPacketReader(uart::UARTComponent *uart_component, const char *log_name)
-      : uart_comp_{*uart_component}, log_name_{log_name} {}
+  ITPPacketReader(ITPByteProvider *byte_provider, const char *log_name)
+      : byte_provider_{*byte_provider}, log_name_{log_name} {}
 
  protected:
-  uart::UARTComponent &uart_comp_;
+  ITPByteProvider &byte_provider_;
   uint8_t packet_buffer_[PACKET_MAX_SIZE];
   uint8_t buffer_position_ = 0;
-  optional<RawPacket> check_for_packet();
+  std::optional<RawPacket> check_for_packet();
 
  private:
   const char *log_name_;
@@ -84,7 +85,7 @@ struct Task {
 // Context for requests sent to heat pump (allows passing request/result in and out of coroutine)
 struct RequestContext {
   Packet request;
-  optional<RawPacket> raw_response;
+  std::optional<RawPacket> raw_response;
   std::coroutine_handle<> handle;
 
   RequestContext(Packet request) : request(request) {}
@@ -107,20 +108,20 @@ template<class PType, class RequestHandler> struct RequestAwaiter {
     request_handler.enqueue_request(std::move(req));  // Handler takes ownership
   }
 
-  bool await_ready() { return false; }
+  bool await_ready() const noexcept { return false; }
 
-  void await_suspend(std::coroutine_handle<> h) { ctx_ptr->handle = h; }
+  void await_suspend(std::coroutine_handle<> h) noexcept { ctx_ptr->handle = h; }
 
-  optional<PType> await_resume() {
+  std::optional<PType> await_resume() noexcept {
     if (ctx_ptr->raw_response) {
-      optional<PType> response_pkt = Packet::try_from_raw<PType>(std::move(ctx_ptr->raw_response.value()));
+      std::optional<PType> response_pkt = Packet::try_from_raw<PType>(std::move(ctx_ptr->raw_response.value()));
       if (response_pkt) {
         response_pkt->set_sequence(ctx_ptr->request.get_sequence());
       }
       return response_pkt;
       // return PType(std::move(ctx_ptr->raw_response.value()));  // Last use of ctx_ptr before Awaiter is destroyed.
     }
-    return nullopt;
+    return std::nullopt;
   }
 };
 

@@ -2,15 +2,15 @@
 
 namespace itp_packet {
 
-Thermostat::Thermostat(uart::UARTComponent *uart_component, Heatpump *connected_heatpump, ITPSystemState *sys_state)
-    : ITPPacketReader(uart_component, "Thermostat"), connected_heatpump_{*connected_heatpump}, sys_state_{*sys_state} {}
+Thermostat::Thermostat(ITPByteProvider *byte_provider, Heatpump *connected_heatpump, ITPSystemState *sys_state)
+    : ITPPacketReader(byte_provider, "Thermostat"), connected_heatpump_{*connected_heatpump}, sys_state_{*sys_state} {}
 
 void Thermostat::loop() {
   if (in_flight_request_.is_running()) {
     // If there is already a request being processed, don't do anything else and just wait for it to return.
     // TODO: This is where we should check to see if the thermostat has sent another packet and cancel the inflight one
   } else {
-    if (optional<RawPacket> rp = check_for_packet()) {
+    if (std::optional<RawPacket> rp = check_for_packet()) {
       in_flight_request_ = handle_thermostat_request(rp.value());
     }
   }
@@ -135,7 +135,7 @@ Task Thermostat::send_immediately(Packet packet) {
 }
 
 void Thermostat::write_raw_packet_(const RawPacket &packet_to_send) const {
-  uart_comp_.write_array(packet_to_send.get_bytes(), packet_to_send.get_length());
+  byte_provider_.write_array(packet_to_send.get_bytes(), packet_to_send.get_length());
 }
 
 RawPacket Thermostat::adjust_mhk_temperature(RawPacket &raw_pkt) {

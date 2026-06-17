@@ -1,17 +1,14 @@
 #pragma once
 
 #include "queue"
-#include "esphome/components/uart/uart.h"
-#include "esphome/core/helpers.h"
-#include <coroutine>
-#include <optional>
-#include <variant>
-#include <expected>
 #include "itp_requests.h"
 #include "itp_packets.h"
 #include "itp_systemstate.h"
-
-using namespace itp_packet;
+#include <coroutine>
+#include <expected>
+#include <optional>
+#include <memory>
+#include <variant>
 
 namespace itp_packet {
 
@@ -57,17 +54,17 @@ class ClimateCommand {
   }
 
  private:
-  optional<SettingsSetRequestPacket::FanByte> fan_speed_ = nullopt;
-  optional<bool> power_ = nullopt;
-  optional<SettingsSetRequestPacket::ModeByte> mode_ = nullopt;
-  optional<float> target_temperature_degC_ = nullopt;
-  optional<SettingsSetRequestPacket::VaneByte> vane_ = nullopt;
-  optional<SettingsSetRequestPacket::HorizontalVaneByte> horizontal_vane_ = nullopt;
+  std::optional<SettingsSetRequestPacket::FanByte> fan_speed_ = std::nullopt;
+  std::optional<bool> power_ = std::nullopt;
+  std::optional<SettingsSetRequestPacket::ModeByte> mode_ = std::nullopt;
+  std::optional<float> target_temperature_degC_ = std::nullopt;
+  std::optional<SettingsSetRequestPacket::VaneByte> vane_ = std::nullopt;
+  std::optional<SettingsSetRequestPacket::HorizontalVaneByte> horizontal_vane_ = std::nullopt;
 };
 
 class Heatpump : public ITPPacketReader {
  public:
-  Heatpump(uart::UARTComponent *uart_component, ITPSystemState *sys_state);
+  Heatpump(ITPByteProvider *byte_provider, ITPSystemState *sys_state);
 
   // Called to tick sending queued requests and reading bytes
   void loop();
@@ -90,7 +87,7 @@ class Heatpump : public ITPPacketReader {
   bool set_zone_active(uint8_t zone, bool active = true);
 
  private:
-  uart::UARTComponent &uart_comp_;  // UART for Heatpump
+  ITPByteProvider &byte_provider_;  // UART for Heatpump
   ITPSystemState &sys_state_;       // System cache / notifier
 
   std::queue<std::unique_ptr<RequestContext>> request_queue_;
@@ -121,7 +118,8 @@ class Heatpump : public ITPPacketReader {
   template<class ResponsePacket> Task enqueue_packet(Packet packet) {
     std::unique_ptr<RequestContext> req = std::make_unique<RequestContext>(packet);
 
-    optional<ResponsePacket> response_pkt = co_await RequestAwaiter<ResponsePacket, Heatpump>(std::move(req), *this);
+    std::optional<ResponsePacket> response_pkt =
+        co_await RequestAwaiter<ResponsePacket, Heatpump>(std::move(req), *this);
 
     if (!response_pkt) {
       ESP_LOGW(HEATPUMP_TAG, "No response to enqueued heatpump packet!");

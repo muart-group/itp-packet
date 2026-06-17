@@ -1,8 +1,8 @@
 #pragma once
 
+#include "itp_packetreceiver.h"
 #include <optional>
 #include <tuple>
-#include "itp_packetreceiver.h"
 
 namespace itp_packet {
 
@@ -15,7 +15,7 @@ template<class T> struct TimestampedValue {
 
   // Updates the stored value (sets updated_at to now), and returns true if the value changed
   bool set(T new_value) {
-    updated_at = esphome::millis();
+    updated_at = itp_millis();
     if (!value || value != new_value) {
       value = new_value;
       return true;
@@ -66,7 +66,7 @@ class ITPSystemState {
   // Checks received packets and returns the latest packet of the appripriate type if it's fresh enough
   template<class PType> std::optional<PType> check_heatpump_cache(uint32_t max_age_ms = 3000) const {
     auto &latest_packet = std::get<TimestampedValue<PType>>(heatpump_packet_cache_);
-    if (esphome::millis() - latest_packet.updated_at <= max_age_ms)
+    if (itp_millis() - latest_packet.updated_at <= max_age_ms)
       return latest_packet.value;
     return std::nullopt;
   }
@@ -84,7 +84,7 @@ class ITPSystemState {
   // Checks received packets and returns the latest packet of the appripriate type if it's fresh enough
   template<class PType> std::optional<PType> check_thermostat_cache(uint32_t max_age_ms = 3000) const {
     auto &latest_packet = std::get<TimestampedValue<PType>>(thermostat_packet_cache_);
-    if (esphome::millis() - latest_packet.updated_at <= max_age_ms)
+    if (itp_millis() - latest_packet.updated_at <= max_age_ms)
       return latest_packet.value;
     return std::nullopt;
   }
@@ -94,7 +94,7 @@ class ITPSystemState {
   std::vector<ITPPacketReceiver *> receivers_{};
 
   template<typename T> void send_to_receivers_(const T &packet) const {
-    ESP_LOGD("mitsubishi_itp.system", "Received %s", packet.to_string().c_str());
+    ITP_LOGD("mitsubishi_itp.system", "Received %s", packet.to_string().c_str());
     for (auto *receiver : this->receivers_) {
       receiver->receive_packet(packet);
     }
