@@ -1,15 +1,14 @@
 #pragma once
 
-
 #include "itp_requests.h"
 #include "itp_heatpump.h"
 #include "itp_mhk.h"
+#include "itp_shim.h"
 #include <coroutine>
 #include <functional>
 #include <queue>
 #include <variant>
 #include <expected>
-
 
 namespace itp_packet {
 
@@ -30,7 +29,7 @@ class Thermostat : public ITPPacketReader {
     RequestType typed_request(std::move(raw_request_packet));
     sys_state_.cache_thermostat_packet(typed_request);
     std::unique_ptr<RequestContext> req = std::make_unique<RequestContext>(typed_request);
-    ITP_LOGV(THERMOSTAT_TAG, "Receiving from thermostat %s", req->request.to_string().c_str());
+    ITP_LOGD(THERMOSTAT_TAG, "Receiving from thermostat %s", req->request.to_string().c_str());
 
     std::optional<ResponseType> response_pkt =
         co_await RequestAwaiter<ResponseType, Heatpump>(std::move(req), connected_heatpump_);

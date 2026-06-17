@@ -1,8 +1,8 @@
 #pragma once
 
-#include "itp_log.h"
 #include "itp_packet.h"
 #include "itp_packets.h"
+#include "itp_shim.h"
 #include <coroutine>
 #include <memory>
 #include <queue>

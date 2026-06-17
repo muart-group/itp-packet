@@ -1,7 +1,5 @@
 #include "itp_requests.h"
 
-using namespace itp_packet;
-
 namespace itp_packet {
 
 // Reads bytes into packet_buffer_ and when a whole packet is available, returns it.
@@ -33,7 +31,7 @@ std::optional<RawPacket> ITPPacketReader::check_for_packet() {
     byte_provider_.read_array(&packet_buffer_[PACKET_HEADER_SIZE],
                               packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] + 1);
     auto rp = RawPacket(packet_buffer_, PACKET_HEADER_SIZE + packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] + 1);
-    ITP_LOGD(REQUESTS_TAG, "Received %02X packet on %s.", rp.get_packet_type(), log_name_);
+    ITP_LOGD(REQUESTS_TAG, "Received %i packet on %s.", rp.get_packet_type(), log_name_);
 
     if (rp.is_checksum_valid()) {
       buffer_position_ = 0;  // Reset buffer

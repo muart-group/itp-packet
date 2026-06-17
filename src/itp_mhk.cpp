@@ -1,8 +1,7 @@
 #include "itp_mhk.h"
 #include <map>
 
-namespace esphome {
-namespace mitsubishi_itp {
+namespace itp_packet {
 
 // Keys in this map are actual temperatures in Celcius. Values are the arbitrary "Celcius" temperatures that, once the
 // MHK's creative math is applied, will produce the closest Fahrenheit temperature to the true Celcius temperature on
@@ -41,5 +40,4 @@ float mhk_temp_to_actual(float mhk_c) {
   return mhk_c;
 }
 
-}  // namespace mitsubishi_itp
-}  // namespace esphome
+}  // namespace itp_packet
