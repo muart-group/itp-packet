@@ -36,8 +36,8 @@ class Thermostat : public ITPPacketReader {
   template<class RequestType, class ResponseType> Task send_to_heatpump(RawPacket &raw_request_packet) {
     RequestType typed_request(std::move(raw_request_packet));
     sys_state_.cache_thermostat_packet(typed_request);
+    ITP_LOGD(THERMOSTAT_TAG, "Receiving from thermostat %s", typed_request.to_string().c_str());
     std::unique_ptr<RequestContext> req = std::make_unique<RequestContext>(typed_request);
-    ITP_LOGD(THERMOSTAT_TAG, "Receiving from thermostat %s", req->request.to_string().c_str());
 
     std::optional<ResponseType> response_pkt =
         co_await RequestAwaiter<ResponseType, Heatpump>(std::move(req), connected_heatpump_);
@@ -48,7 +48,7 @@ class Thermostat : public ITPPacketReader {
         response_pkt = ResponseType(adjust_mhk_temperature(response_pkt->raw_packet()));
       }
 
-      ITP_LOGV(THERMOSTAT_TAG, "Sending to thermostat %s", response_pkt.value().to_string().c_str());
+      ITP_LOGD(THERMOSTAT_TAG, "Sending to thermostat %s", response_pkt.value().to_string().c_str());
       write_raw_packet_(response_pkt.value().raw_packet());  // Send to thermostat ASAP
       sys_state_.cache_heatpump_packet(
           *response_pkt);  // Send to SystemState to be cached/forwarded (if it's of the appropriate type)

@@ -47,14 +47,12 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
         case GetCommand::ZONE_STATE:
           return send_to_heatpump<GetRequestPacket, ZoneGetResponsePacket>(raw_request_packet);
         case GetCommand::THERMOSTAT_STATE_DOWNLOAD:
-          ITP_LOGD(THERMOSTAT_TAG, "Got get download!");
           if (enhanced_mhk_) {
             return send_immediately(get_state_download_response());
           } else {
             return send_to_heatpump<GetRequestPacket, ThermostatStateDownloadResponsePacket>(raw_request_packet);
           }
         case GetCommand::THERMOSTAT_GET_AB:
-          ITP_LOGD(THERMOSTAT_TAG, "Got get AB!");
           if (enhanced_mhk_) {
             return send_immediately(ThermostatABGetResponsePacket());
           } else {
@@ -78,9 +76,7 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
         case SetCommand::SETTINGS:
           return send_to_heatpump<SettingsSetRequestPacket, SetResponsePacket>(raw_request_packet);
         case SetCommand::THERMOSTAT_SENSOR_STATUS:
-          ITP_LOGD(THERMOSTAT_TAG, "Got sensor status!");
           if (enhanced_mhk_) {
-            ITP_LOGD(THERMOSTAT_TAG, "Got sensor status!");
             // No processing to be done here, it's just forwarded to sensors
             sys_state_.cache_thermostat_packet(ThermostatSensorStatusPacket(std::move(raw_request_packet)), true);
             return send_immediately(SetResponsePacket());
@@ -90,16 +86,13 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
         case SetCommand::THERMOSTAT_HELLO:
           // TODO: Log this info?
           if (enhanced_mhk_) {
-            ITP_LOGD(THERMOSTAT_TAG, "Got Hello!");
             sys_state_.cache_thermostat_packet(ThermostatHelloPacket(std::move(raw_request_packet)), true);
-            ITP_LOGD(THERMOSTAT_TAG, "Sending response to Hello...");
             return send_immediately(SetResponsePacket());
           } else {
             return send_to_heatpump<ThermostatHelloPacket, SetResponsePacket>(raw_request_packet);
           }
 
         case SetCommand::THERMOSTAT_STATE_UPLOAD:
-          ITP_LOGD(THERMOSTAT_TAG, "Got state upload!");
           if (enhanced_mhk_) {
             handle_state_upload(raw_request_packet);
             return send_immediately(SetResponsePacket());
@@ -109,7 +102,6 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
         case SetCommand::ZONE_STATE:
           return send_to_heatpump<ZoneSetRequestPacket, SetResponsePacket>(raw_request_packet);
         case SetCommand::THERMOSTAT_SET_AA:
-          ITP_LOGD(THERMOSTAT_TAG, "Got set AA!");
           if (enhanced_mhk_) {
             return send_immediately(SetResponsePacket());
           } else {

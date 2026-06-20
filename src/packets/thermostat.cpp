@@ -124,7 +124,7 @@ std::string ThermostatStateDownloadResponsePacket::to_string() const {
 
   std::string result = "Thermostat Download Response " + Packet::to_string() + CONSOLE_COLOR_PURPLE;
 
-  result += "\nAuto: " + ITPUtils::format_hex(pkt_.get_payload_byte(PLINDEX_AUTO_MODE));
+  result += "\n Auto: " + ITPUtils::format_hex(pkt_.get_payload_byte(PLINDEX_AUTO_MODE));
   result +=
       " Heat Sepoint: " + std::to_string(ITPUtils::temp_scale_a_to_deg_c(pkt_.get_payload_byte(PLINDEX_HEAT_SETPOINT)));
   result +=

@@ -107,13 +107,16 @@ Task Heatpump::do_update_queries() {
     std::unique_ptr<RequestContext> runstate_req =
         std::make_unique<RequestContext>(GetRequestPacket::get_runstate_instance());
     runstate_res = co_await RequestAwaiter<RunStateGetResponsePacket, Heatpump>(std::move(runstate_req), *this);
-  }
-  // If we received it, cache it (cache will notify subscribed receivers)
-  if (runstate_res) {
-    ITP_LOGV(HEATPUMP_TAG, "Received %s", runstate_res->to_string().c_str());
-    sys_state_.cache_heatpump_packet(runstate_res.value());
+
+    // If we received it, cache it (cache will notify subscribed receivers)
+    if (runstate_res) {
+      ITP_LOGV(HEATPUMP_TAG, "Received %s", runstate_res->to_string().c_str());
+      sys_state_.cache_heatpump_packet(runstate_res.value());
+    } else {
+      ITP_LOGW(HEATPUMP_TAG, "Runstate Packet not recevied!");
+    }
   } else {
-    ITP_LOGW(HEATPUMP_TAG, "Runstate Packet not recevied!");
+    ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", runstate_res->to_string().c_str());
   }
 
   // Settings & Status processed together for mode logic to work
@@ -122,6 +125,15 @@ Task Heatpump::do_update_queries() {
     std::unique_ptr<RequestContext> settings_req =
         std::make_unique<RequestContext>(GetRequestPacket::get_settings_instance());
     settings_res = co_await RequestAwaiter<SettingsGetResponsePacket, Heatpump>(std::move(settings_req), *this);
+
+    if (settings_res) {
+      ITP_LOGV(HEATPUMP_TAG, "Received %s", settings_res->to_string().c_str());
+      sys_state_.cache_heatpump_packet(settings_res.value());
+    } else {
+      ITP_LOGW(HEATPUMP_TAG, "Settings Packet not recevied!");
+    }
+  } else {
+    ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", settings_res->to_string().c_str());
   }
 
   std::optional<StatusGetResponsePacket> status_res = sys_state_.check_heatpump_cache<StatusGetResponsePacket>();
@@ -129,15 +141,14 @@ Task Heatpump::do_update_queries() {
     std::unique_ptr<RequestContext> status_req =
         std::make_unique<RequestContext>(GetRequestPacket::get_status_instance());
     status_res = co_await RequestAwaiter<StatusGetResponsePacket, Heatpump>(std::move(status_req), *this);
-  }
-
-  if (settings_res && status_res) {
-    ITP_LOGV(HEATPUMP_TAG, "Received %s", settings_res->to_string().c_str());
-    ITP_LOGV(HEATPUMP_TAG, "Received %s", status_res->to_string().c_str());
-    sys_state_.cache_heatpump_packet(settings_res.value());
-    sys_state_.cache_heatpump_packet(status_res.value());
+    if (status_res) {
+      ITP_LOGV(HEATPUMP_TAG, "Received %s", status_res->to_string().c_str());
+      sys_state_.cache_heatpump_packet(status_res.value());
+    } else {
+      ITP_LOGW(HEATPUMP_TAG, "Status Packet not recevied!");
+    }
   } else {
-    ITP_LOGW(HEATPUMP_TAG, "Settings/Status Packet not recevied!");
+    ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", status_res->to_string().c_str());
   }
 
   // Current temp
@@ -147,13 +158,15 @@ Task Heatpump::do_update_queries() {
     std::unique_ptr<RequestContext> temp_req =
         std::make_unique<RequestContext>(GetRequestPacket::get_current_temp_instance());
     temp_res = co_await RequestAwaiter<CurrentTempGetResponsePacket, Heatpump>(std::move(temp_req), *this);
-  }
 
-  if (temp_res) {
-    ITP_LOGV(HEATPUMP_TAG, "Received %s", temp_res->to_string().c_str());
-    sys_state_.cache_heatpump_packet(temp_res.value());
+    if (temp_res) {
+      ITP_LOGV(HEATPUMP_TAG, "Received %s", temp_res->to_string().c_str());
+      sys_state_.cache_heatpump_packet(temp_res.value());
+    } else {
+      ITP_LOGW(HEATPUMP_TAG, "Current Temperature Packet not recevied!");
+    }
   } else {
-    ITP_LOGW(HEATPUMP_TAG, "Current Temperature Packet not recevied!");
+    ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", temp_res->to_string().c_str());
   }
 
   // Error Info
@@ -162,13 +175,15 @@ Task Heatpump::do_update_queries() {
     std::unique_ptr<RequestContext> error_req =
         std::make_unique<RequestContext>(GetRequestPacket::get_error_info_instance());
     error_res = co_await RequestAwaiter<ErrorStateGetResponsePacket, Heatpump>(std::move(error_req), *this);
-  }
 
-  if (error_res) {
-    ITP_LOGV(HEATPUMP_TAG, "Received %s", error_res->to_string().c_str());
-    sys_state_.cache_heatpump_packet(error_res.value());
+    if (error_res) {
+      ITP_LOGV(HEATPUMP_TAG, "Received %s", error_res->to_string().c_str());
+      sys_state_.cache_heatpump_packet(error_res.value());
+    } else {
+      ITP_LOGW(HEATPUMP_TAG, "Error Info Packet not recevied!");
+    }
   } else {
-    ITP_LOGW(HEATPUMP_TAG, "Error Info Packet not recevied!");
+    ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", error_res->to_string().c_str());
   }
 
   // Zones (may not work on all units)
@@ -178,12 +193,15 @@ Task Heatpump::do_update_queries() {
       std::unique_ptr<RequestContext> zone_req =
           std::make_unique<RequestContext>(GetRequestPacket::get_zone_instance());
       zone_res = co_await RequestAwaiter<ZoneGetResponsePacket, Heatpump>(std::move(zone_req), *this);
-    }
-    if (zone_res) {
-      ITP_LOGV(HEATPUMP_TAG, "Received %s", zone_res->to_string().c_str());
-      sys_state_.cache_heatpump_packet(zone_res.value());
+
+      if (zone_res) {
+        ITP_LOGV(HEATPUMP_TAG, "Received %s", zone_res->to_string().c_str());
+        sys_state_.cache_heatpump_packet(zone_res.value());
+      } else {
+        ITP_LOGI(HEATPUMP_TAG, "Zone info packet not received (may not be supported).");
+      }
     } else {
-      ITP_LOGI(HEATPUMP_TAG, "Zone info packet not received (may not be supported).");
+      ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", zone_res->to_string().c_str());
     }
   }
 
