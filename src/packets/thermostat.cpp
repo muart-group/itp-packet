@@ -100,22 +100,36 @@ ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::se
   return *this;
 }
 
-ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_auto_mode(bool is_auto) {
-  pkt_.set_payload_byte(PLINDEX_AUTO_MODE, is_auto ? 0x01 : 0x00);
+ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_auto_mode(uint8_t auto_byte) {
+  pkt_.set_payload_byte(PLINDEX_AUTO_MODE, auto_byte);
   return *this;
 }
 
-ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_heat_setpoint(float high_temp) {
-  uint8_t temp_a = high_temp != NAN ? ITPUtils::deg_c_to_temp_scale_a(high_temp) : 0x00;
+ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_heat_setpoint(float heat_setpoint) {
+  uint8_t temp_a = heat_setpoint != NAN ? ITPUtils::deg_c_to_temp_scale_a(heat_setpoint) : 0x00;
 
   pkt_.set_payload_byte(PLINDEX_HEAT_SETPOINT, temp_a);
   return *this;
 }
 
-ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_cool_setpoint(float low_temp) {
-  uint8_t temp_a = low_temp != NAN ? ITPUtils::deg_c_to_temp_scale_a(low_temp) : 0x00;
+ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_cool_setpoint(float cool_setpoint) {
+  uint8_t temp_a = cool_setpoint != NAN ? ITPUtils::deg_c_to_temp_scale_a(cool_setpoint) : 0x00;
 
   pkt_.set_payload_byte(PLINDEX_COOL_SETPOINT, temp_a);
   return *this;
+}
+
+std::string ThermostatStateDownloadResponsePacket::to_string() const {
+  uint8_t flags = get_flags();
+
+  std::string result = "Thermostat Download Response " + Packet::to_string() + CONSOLE_COLOR_PURPLE;
+
+  result += "\nAuto: " + ITPUtils::format_hex(pkt_.get_payload_byte(PLINDEX_AUTO_MODE));
+  result +=
+      " Heat Sepoint: " + std::to_string(ITPUtils::temp_scale_a_to_deg_c(pkt_.get_payload_byte(PLINDEX_HEAT_SETPOINT)));
+  result +=
+      " Cool Sepoint: " + std::to_string(ITPUtils::temp_scale_a_to_deg_c(pkt_.get_payload_byte(PLINDEX_COOL_SETPOINT)));
+
+  return result;
 }
 }  // namespace itp_packet

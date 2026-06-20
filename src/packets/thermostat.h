@@ -100,9 +100,10 @@ class ThermostatStateDownloadResponsePacket : public Packet {
   }
 
   ThermostatStateDownloadResponsePacket &set_timestamp(tm time_struct);
-  ThermostatStateDownloadResponsePacket &set_auto_mode(bool is_auto);
-  ThermostatStateDownloadResponsePacket &set_heat_setpoint(float high_temp);
-  ThermostatStateDownloadResponsePacket &set_cool_setpoint(float low_temp);
+  ThermostatStateDownloadResponsePacket &set_auto_mode(uint8_t auto_byte);
+  ThermostatStateDownloadResponsePacket &set_heat_setpoint(float heat_setpoint);
+  ThermostatStateDownloadResponsePacket &set_cool_setpoint(float cool_setpoint);
+  std::string to_string() const override;
   static bool validate_type(const RawPacket &pkt) {
     return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
            pkt.get_command() == static_cast<uint8_t>(GetCommand::THERMOSTAT_STATE_DOWNLOAD);

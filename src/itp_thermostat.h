@@ -21,8 +21,16 @@ class Thermostat : public ITPPacketReader {
 
   void intercept_remote_temperatures(bool do_intercept) { intercept_remote_temp_ = do_intercept; };
   void mhk_fahrenheit_correction(bool do_mhk_f_correction) { mhk_fahrenheit_correction_ = do_mhk_f_correction; };
+  bool mhk_fahrenheit_correction_is_on() const { return mhk_fahrenheit_correction_; }
   void enchanced_mhk(bool enable_enhanced_mhk) { enhanced_mhk_ = enable_enhanced_mhk; };
   void set_timestruct_source(std::function<tm()> source_function) { get_timestruct_ = source_function; };
+
+  void set_cooldry_setpoint(float degC) { cooldry_setpoint_ = degC; }
+  float get_cooldry_setpoint() const { return cooldry_setpoint_; }
+  void set_heat_setpoint(float degC) { heat_setpoint_ = degC; }
+  float get_heat_setpoint() const { return heat_setpoint_; }
+  void set_auto_mode(uint8_t mode_byte) { auto_mode_ = mode_byte; }
+  uint8_t get_auto_mode() const { return auto_mode_; }
 
  protected:
   template<class RequestType, class ResponseType> Task send_to_heatpump(RawPacket &raw_request_packet) {
@@ -80,6 +88,12 @@ class Thermostat : public ITPPacketReader {
     ITP_LOGW(THERMOSTAT_TAG, "Time source is not synchronized. Cannot provide accurate time!");
     return tm{.tm_mday = 1, .tm_mon = 0, .tm_year = 124};  // 2024-01-01 00:00:00Z
   };
+
+  float cooldry_setpoint_ = NAN;
+  float heat_setpoint_ = NAN;
+  uint8_t auto_mode_ = 0x00;
+
+  // TODO: Remove this
   MHKState mhk_state_;
 };
 

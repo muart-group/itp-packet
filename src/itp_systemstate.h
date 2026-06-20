@@ -89,6 +89,35 @@ class ITPSystemState {
     return std::nullopt;
   }
 
+  // Returns the age in milliseconds of the last cached version of this type (if there is one)
+  template<class PType> std::optional<uint32_t> get_thermostat_cache_age() const {
+    auto &latest_packet = std::get<TimestampedValue<PType>>(thermostat_packet_cache_);
+    if (latest_packet.value) {
+      return itp_millis() - latest_packet.updated_at;
+    }
+    return std::nullopt;
+  }
+
+  // TODO: These two functions don't support i-See yet
+
+  // Returns true if heatpump's last reported mode was HEAT
+  bool is_heatpump_on_heat() {
+    std::optional<SettingsGetResponsePacket> last_settings = check_heatpump_cache<SettingsGetResponsePacket>();
+    if (last_settings) {
+      return last_settings->get_mode() == itp_packet::SettingsSetRequestPacket::ModeByte::MODE_BYTE_HEAT;
+    }
+    return false;
+  }
+
+  // Returns true if heatpump's last reported mode was COOL
+  bool is_heatpump_on_cool() {
+    std::optional<SettingsGetResponsePacket> last_settings = check_heatpump_cache<SettingsGetResponsePacket>();
+    if (last_settings) {
+      return last_settings->get_mode() == itp_packet::SettingsSetRequestPacket::ModeByte::MODE_BYTE_COOL;
+    }
+    return false;
+  }
+
  private:
   TimestampedValue<bool> connected_ = TimestampedValue<bool>{false};
   std::vector<ITPPacketReceiver *> receivers_{};
