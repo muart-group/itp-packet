@@ -7,12 +7,6 @@ Packet::Packet() {
   // TODO: Is this okay?
 }
 
-// std::string Packet::to_string() const {
-//   return format_hex_pretty(&pkt_.getBytes()[0], pkt_.getLength());
-// }
-
-static char format_hex_pretty_char(uint8_t v) { return v >= 10 ? 'A' + (v - 10) : '0' + v; }
-
 std::string Packet::to_string() const {
   // Based on `format_hex_pretty` from ESPHome
   if (pkt_.get_length() < PACKET_HEADER_SIZE)
@@ -29,8 +23,8 @@ std::string Packet::to_string() const {
     if (i == 1) {
       stream << CONSOLE_COLOR_CYAN_BOLD;
     }
-    stream << format_hex_pretty_char((pkt_.get_bytes()[i] & 0xF0) >> 4);
-    stream << format_hex_pretty_char(pkt_.get_bytes()[i] & 0x0F);
+    stream << ITPUtils::format_hex_pretty_char((pkt_.get_bytes()[i] & 0xF0) >> 4);
+    stream << ITPUtils::format_hex_pretty_char(pkt_.get_bytes()[i] & 0x0F);
     if (i < PACKET_HEADER_SIZE - 1) {
       stream << '.';
     }
@@ -44,8 +38,8 @@ std::string Packet::to_string() const {
 
   // Payload
   for (size_t i = PACKET_HEADER_SIZE; i < pkt_.get_length() - 1; i++) {
-    stream << format_hex_pretty_char((pkt_.get_bytes()[i] & 0xF0) >> 4);
-    stream << format_hex_pretty_char(pkt_.get_bytes()[i] & 0x0F);
+    stream << ITPUtils::format_hex_pretty_char((pkt_.get_bytes()[i] & 0xF0) >> 4);
+    stream << ITPUtils::format_hex_pretty_char(pkt_.get_bytes()[i] & 0x0F);
     if (i < pkt_.get_length() - 2) {
       stream << '.';
     }
@@ -56,8 +50,8 @@ std::string Packet::to_string() const {
   stream << CONSOLE_COLOR_GREEN;  // Green
 
   // Checksum
-  stream << format_hex_pretty_char((pkt_.get_bytes()[pkt_.get_length() - 1] & 0xF0) >> 4);
-  stream << format_hex_pretty_char(pkt_.get_bytes()[pkt_.get_length() - 1] & 0x0F);
+  stream << ITPUtils::format_hex_pretty_char((pkt_.get_bytes()[pkt_.get_length() - 1] & 0xF0) >> 4);
+  stream << ITPUtils::format_hex_pretty_char(pkt_.get_bytes()[pkt_.get_length() - 1] & 0x0F);
 
   stream << CONSOLE_COLOR_NONE;  // Reset
 

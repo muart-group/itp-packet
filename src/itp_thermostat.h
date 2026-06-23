@@ -74,13 +74,6 @@ class Thermostat : public ITPPacketReader {
   void handle_state_upload(RawPacket &raw_pkt);
   ThermostatStateDownloadResponsePacket get_state_download_response();
 
-  std::queue<std::unique_ptr<RequestContext>> request_queue_;
-
-  uint32_t update_sent_millis_ = 0;
-  uint32_t packet_sent_millis_ = 0;
-
-  std::unique_ptr<RequestContext> current_request_ctx_ = nullptr;
-
   bool intercept_remote_temp_ = false;
   bool mhk_fahrenheit_correction_ = false;
   bool enhanced_mhk_ = false;

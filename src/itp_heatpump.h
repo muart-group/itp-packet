@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "itp_requests.h"
 #include "itp_packets.h"
 #include "itp_systemstate.h"
@@ -24,7 +23,7 @@ class ClimateCommand {
   ClimateCommand(){};
   Task send(Heatpump &target);
 
-  ClimateCommand &fanSpeed(SettingsSetRequestPacket::FanByte fan_speed) {
+  ClimateCommand &fan_speed(SettingsSetRequestPacket::FanByte fan_speed) {
     fan_speed_ = fan_speed;
     return *this;
   }
