@@ -98,6 +98,8 @@ Task Heatpump::do_connect() {
   }
 }
 
+// TODO: Lots of repetitive code here, it would be nice to use a sub-function, but co_await is making that tricky...
+
 Task Heatpump::do_update_queries() {
   // Check cache first
   std::optional<RunStateGetResponsePacket> runstate_res = sys_state_.check_heatpump_cache<RunStateGetResponsePacket>();

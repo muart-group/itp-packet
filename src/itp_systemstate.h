@@ -118,6 +118,12 @@ class ITPSystemState {
     return false;
   }
 
+  ITPSystemState() = default;
+  ITPSystemState(const ITPSystemState &) = delete;
+  ITPSystemState &operator=(const ITPSystemState &) = delete;
+  ITPSystemState(ITPSystemState &&) = delete;
+  ITPSystemState &operator=(ITPSystemState &&) = delete;
+
  private:
   TimestampedValue<bool> connected_ = TimestampedValue<bool>{false};
   std::vector<ITPPacketReceiver *> receivers_{};

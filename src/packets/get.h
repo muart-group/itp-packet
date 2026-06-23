@@ -8,34 +8,42 @@ class GetRequestPacket : public Packet {
  public:
   static GetRequestPacket &get_settings_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::SETTINGS);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_current_temp_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::CURRENT_TEMP);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_status_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::STATUS);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_runstate_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::RUN_STATE);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_error_info_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::ERROR_INFO);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_functions_1_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::FUNCTIONS_1);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_functions_2_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::FUNCTIONS_2);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_zone_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::ZONE_STATE);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   using Packet::Packet;

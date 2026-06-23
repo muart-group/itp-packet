@@ -8,6 +8,7 @@ class ConnectRequestPacket : public Packet {
   using Packet::Packet;
   static ConnectRequestPacket &instance() {
     static ConnectRequestPacket instance;
+    instance.set_sequence(next_seq_++);
     return instance;
   }
 

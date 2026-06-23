@@ -7,6 +7,7 @@ class CapabilitiesRequestPacket : public Packet {
  public:
   static CapabilitiesRequestPacket &instance() {
     static CapabilitiesRequestPacket instance;
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   using Packet::Packet;

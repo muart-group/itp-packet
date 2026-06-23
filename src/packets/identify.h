@@ -7,6 +7,7 @@ class IdentifyCDRequestPacket : public Packet {
  public:
   static IdentifyCDRequestPacket &instance() {
     static IdentifyCDRequestPacket instance;
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   using Packet::Packet;
