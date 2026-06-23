@@ -8,7 +8,6 @@
 #include <sstream>
 #include <string>
 
-
 namespace itp_packet {
 static constexpr char PACKETS_TAG[] = "mitsubishi_itp.packets";
 
@@ -36,8 +35,8 @@ class PacketProcessor;
 class Packet {
  public:
   // TODO: Can I hide these in favor of from_rawpacket?
-  Packet(RawPacket &&pkt) : pkt_(pkt){};  // TODO: Confirm this needs std::move if call to constructor ALSO has move
-  Packet();                               // For optional<> construction
+  Packet(RawPacket &&pkt) : pkt_(std::move(pkt)){};
+  Packet();  // For optional<> construction
 
   // Only compares inner raw packet (ignoring extras like sequence_num and response_expected which should probably be
   // implemented elsewhere anyway)

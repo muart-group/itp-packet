@@ -6,7 +6,6 @@
 #include <type_traits>
 #include <bit>
 
-
 namespace itp_packet {
 
 static constexpr char PTAG[] = "mitsubishi_itp.packets";
@@ -73,14 +72,14 @@ class RawPacket {
   // TODO: Can I hide this constructor except from optional?
   RawPacket();                                              // For optional<RawPacket> construction
   RawPacket(PacketType packet_type, uint8_t payload_size);  // For building packets
-  virtual ~RawPacket() {}
+  ~RawPacket() {}
 
   // Only the raw bytes are compared; this ignores source bridge and controller association
   bool operator==(const RawPacket &other) const {
     return length_ == other.length_ && std::memcmp(packet_bytes_, other.packet_bytes_, length_) == 0;
   }
 
-  virtual std::string to_string() const { return ITPUtils::format_hex_pretty(&get_bytes()[0], get_length()); };
+  std::string to_string() const { return ITPUtils::format_hex_pretty(&get_bytes()[0], get_length()); };
 
   uint8_t get_length() const { return length_; };
   const uint8_t *get_bytes() const { return packet_bytes_; };  // Primarily for sending packets
