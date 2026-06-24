@@ -1,0 +1,141 @@
+#pragma once
+
+#include "itp_packetreceiver.h"
+#include <optional>
+#include <tuple>
+
+namespace itp_packet {
+
+// TODO: Will store last received packets of each type that contains state (e.g. not most SetRequest packets, but most
+// Response packets) and their received time as milliseconds
+
+template<class T> struct TimestampedValue {
+  std::optional<T> value{std::nullopt};
+  uint32_t updated_at{0};  // Millis when the value was last checked
+
+  // Updates the stored value (sets updated_at to now), and returns true if the value changed
+  bool set(T new_value) {
+    updated_at = itp_millis();
+    if (!value || value != new_value) {
+      value = std::move(new_value);
+      return true;
+    }
+    return false;
+  }
+};
+// TODO: Const/config max_age default
+
+// Define which packets will be treated a cached AND forwarded to receivers.
+using HeatpumpPacketCache =
+    std::tuple<TimestampedValue<CapabilitiesResponsePacket>, TimestampedValue<CurrentTempGetResponsePacket>,
+               TimestampedValue<ErrorStateGetResponsePacket>, TimestampedValue<Functions1GetResponsePacket>,
+               TimestampedValue<Functions2GetResponsePacket>, TimestampedValue<RunStateGetResponsePacket>,
+               TimestampedValue<SettingsGetResponsePacket>, TimestampedValue<StatusGetResponsePacket>,
+               TimestampedValue<ZoneGetResponsePacket>>;
+
+using ThermostatPacketCache =
+    std::tuple<TimestampedValue<RemoteTemperatureSetRequestPacket>, TimestampedValue<ThermostatHelloPacket>,
+               TimestampedValue<ThermostatSensorStatusPacket>, TimestampedValue<ThermostatStateUploadPacket>>;
+
+// Define costexpr to check if a type is part of the tuple (to statically check if a packet type is one
+// we want to cache/forward to receivers or not)
+template<typename T, typename Tuple> struct is_in_tuple : std::false_type {};
+
+template<typename T, typename... Types>
+struct is_in_tuple<T, std::tuple<Types...>> : std::disjunction<std::is_same<T, Types>...> {};
+
+template<typename T, typename Tuple> inline constexpr bool is_in_tuple_v = is_in_tuple<T, Tuple>::value;
+
+class ITPSystemState {
+ public:
+  void set_connected(bool is_connected) { connected_.set(is_connected); }
+  bool is_connected() { return connected_.value.value(); }
+
+  void register_receiver(ITPPacketReceiver *receiver) { this->receivers_.push_back(receiver); }
+
+  // Caches the packet and sends to receivers *IF* it's one of the defined cached packet types above (otherwise ignores)
+  template<class PType> void cache_heatpump_packet(const PType &incoming_packet) {
+    if constexpr (is_in_tuple_v<TimestampedValue<PType>, HeatpumpPacketCache>) {
+      auto &latest_packet = std::get<TimestampedValue<PType>>(heatpump_packet_cache_);
+      if (latest_packet.set(incoming_packet)) {
+        send_to_receivers_(incoming_packet);
+      }
+    }
+  }
+
+  // Checks received packets and returns the latest packet of the appripriate type if it's fresh enough
+  template<class PType> std::optional<PType> check_heatpump_cache(uint32_t max_age_ms = 3000) const {
+    auto &latest_packet = std::get<TimestampedValue<PType>>(heatpump_packet_cache_);
+    if (itp_millis() - latest_packet.updated_at <= max_age_ms)
+      return latest_packet.value;
+    return std::nullopt;
+  }
+
+  // Caches the packet and sends to receivers *IF* it's one of the defined cached packet types above (otherwise ignores)
+  template<class PType> void cache_thermostat_packet(const PType &incoming_packet, bool always_notify = false) {
+    if constexpr (is_in_tuple_v<TimestampedValue<PType>, ThermostatPacketCache>) {
+      auto &latest_packet = std::get<TimestampedValue<PType>>(thermostat_packet_cache_);
+      if (latest_packet.set(incoming_packet) || always_notify) {
+        send_to_receivers_(incoming_packet);
+      }
+    }
+  }
+
+  // Checks received packets and returns the latest packet of the appripriate type if it's fresh enough
+  template<class PType> std::optional<PType> check_thermostat_cache(uint32_t max_age_ms = 3000) const {
+    auto &latest_packet = std::get<TimestampedValue<PType>>(thermostat_packet_cache_);
+    if (itp_millis() - latest_packet.updated_at <= max_age_ms)
+      return latest_packet.value;
+    return std::nullopt;
+  }
+
+  // Returns the age in milliseconds of the last cached version of this type (if there is one)
+  template<class PType> std::optional<uint32_t> get_thermostat_cache_age() const {
+    auto &latest_packet = std::get<TimestampedValue<PType>>(thermostat_packet_cache_);
+    if (latest_packet.value) {
+      return itp_millis() - latest_packet.updated_at;
+    }
+    return std::nullopt;
+  }
+
+  // TODO: These two functions don't support i-See yet
+
+  // Returns true if heatpump's last reported mode was HEAT
+  bool is_heatpump_on_heat() {
+    std::optional<SettingsGetResponsePacket> last_settings = check_heatpump_cache<SettingsGetResponsePacket>();
+    if (last_settings) {
+      return last_settings->get_mode() == itp_packet::SettingsSetRequestPacket::ModeByte::MODE_BYTE_HEAT;
+    }
+    return false;
+  }
+
+  // Returns true if heatpump's last reported mode was COOL
+  bool is_heatpump_on_cool() {
+    std::optional<SettingsGetResponsePacket> last_settings = check_heatpump_cache<SettingsGetResponsePacket>();
+    if (last_settings) {
+      return last_settings->get_mode() == itp_packet::SettingsSetRequestPacket::ModeByte::MODE_BYTE_COOL;
+    }
+    return false;
+  }
+
+  ITPSystemState() = default;
+  ITPSystemState(const ITPSystemState &) = delete;
+  ITPSystemState &operator=(const ITPSystemState &) = delete;
+  ITPSystemState(ITPSystemState &&) = delete;
+  ITPSystemState &operator=(ITPSystemState &&) = delete;
+
+ private:
+  TimestampedValue<bool> connected_ = TimestampedValue<bool>{false};
+  std::vector<ITPPacketReceiver *> receivers_{};
+
+  template<typename T> void send_to_receivers_(const T &packet) const {
+    ITP_LOGD("mitsubishi_itp.system", "Received %s", packet.to_string().c_str());
+    for (auto *receiver : this->receivers_) {
+      receiver->receive_packet(packet);
+    }
+  }
+
+  HeatpumpPacketCache heatpump_packet_cache_;
+  ThermostatPacketCache thermostat_packet_cache_;
+};
+}  // namespace itp_packet

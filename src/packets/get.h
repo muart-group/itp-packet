@@ -8,34 +8,42 @@ class GetRequestPacket : public Packet {
  public:
   static GetRequestPacket &get_settings_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::SETTINGS);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_current_temp_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::CURRENT_TEMP);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_status_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::STATUS);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_runstate_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::RUN_STATE);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_error_info_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::ERROR_INFO);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_functions_1_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::FUNCTIONS_1);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_functions_2_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::FUNCTIONS_2);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   static GetRequestPacket &get_zone_instance() {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::ZONE_STATE);
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   using Packet::Packet;
@@ -79,6 +87,10 @@ class SettingsGetResponsePacket : public Packet {
   SettingsGetResponsePacket &set_target_temperature(float temperature_degrees_c);
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::SETTINGS);
+  }
 };
 
 class CurrentTempGetResponsePacket : public Packet {
@@ -98,6 +110,10 @@ class CurrentTempGetResponsePacket : public Packet {
   CurrentTempGetResponsePacket &set_current_temperature(float temperature_degrees_c);
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::CURRENT_TEMP);
+  }
 };
 
 class StatusGetResponsePacket : public Packet {
@@ -116,6 +132,10 @@ class StatusGetResponsePacket : public Packet {
   }
   float get_lifetime_kwh() const;
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::STATUS);
+  }
 };
 
 class RunStateGetResponsePacket : public Packet {
@@ -132,6 +152,10 @@ class RunStateGetResponsePacket : public Packet {
   uint8_t get_actual_fan_speed() const { return pkt_.get_payload_byte(PLINDEX_ACTUALFAN); }
   uint8_t get_auto_mode() const { return pkt_.get_payload_byte(PLINDEX_AUTOMODE); }
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::RUN_STATE);
+  }
 };
 
 class ErrorStateGetResponsePacket : public Packet {
@@ -145,6 +169,10 @@ class ErrorStateGetResponsePacket : public Packet {
   bool error_present() const { return get_error_code() != 0x8000 || get_raw_short_code() != 0x00; }
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::ERROR_INFO);
+  }
 };
 
 class Functions1GetResponsePacket : public Packet {
@@ -152,6 +180,10 @@ class Functions1GetResponsePacket : public Packet {
 
  public:
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::FUNCTIONS_1);
+  }
 };
 
 class Functions2GetResponsePacket : public Packet {
@@ -159,5 +191,9 @@ class Functions2GetResponsePacket : public Packet {
 
  public:
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::FUNCTIONS_2);
+  }
 };
 }  // namespace itp_packet

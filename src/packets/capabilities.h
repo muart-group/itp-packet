@@ -7,6 +7,7 @@ class CapabilitiesRequestPacket : public Packet {
  public:
   static CapabilitiesRequestPacket &instance() {
     static CapabilitiesRequestPacket instance;
+    instance.set_sequence(next_seq_++);
     return instance;
   }
   using Packet::Packet;
@@ -51,6 +52,9 @@ class CapabilitiesResponsePacket : public Packet {
   uint8_t get_supported_fan_speeds() const;
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::IDENTIFY_RESPONSE);
+  }
 };
 
 }  // namespace itp_packet

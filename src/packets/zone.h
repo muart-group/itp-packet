@@ -15,6 +15,10 @@ class ZoneGetResponsePacket : public Packet {
   bool get_zone_active(uint8_t zone) const { return pkt_.get_payload_byte(PLINDEX_ZONE_OFFSET + zone) != 0; }
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::ZONE_STATE);
+  }
 };
 
 class ZoneSetRequestPacket : public Packet {

@@ -26,6 +26,10 @@ class ThermostatSensorStatusPacket : public Packet {
   uint8_t get_sensor_flags() const { return pkt_.get_payload_byte(7); }
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::SET_REQUEST) &&
+           pkt.get_command() == static_cast<uint8_t>(SetCommand::THERMOSTAT_SENSOR_STATUS);
+  }
 };
 
 // Sent by MHK2 but with no response; defined to allow setResponseExpected(false)
@@ -42,6 +46,10 @@ class ThermostatHelloPacket : public Packet {
   std::string get_thermostat_version_string() const;
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::SET_REQUEST) &&
+           pkt.get_command() == static_cast<uint8_t>(SetCommand::THERMOSTAT_HELLO);
+  }
 };
 
 class ThermostatStateUploadPacket : public Packet {
@@ -72,6 +80,10 @@ class ThermostatStateUploadPacket : public Packet {
   float get_cool_setpoint() const;
 
   std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::SET_REQUEST) &&
+           pkt.get_command() == static_cast<uint8_t>(SetCommand::THERMOSTAT_STATE_UPLOAD);
+  }
 };
 
 class ThermostatStateDownloadResponsePacket : public Packet {
@@ -87,10 +99,15 @@ class ThermostatStateDownloadResponsePacket : public Packet {
     pkt_.set_payload_byte(0, static_cast<uint8_t>(GetCommand::THERMOSTAT_STATE_DOWNLOAD));
   }
 
-  ThermostatStateDownloadResponsePacket &set_timestamp(time_t ts);
-  ThermostatStateDownloadResponsePacket &set_auto_mode(bool is_auto);
-  ThermostatStateDownloadResponsePacket &set_heat_setpoint(float high_temp);
-  ThermostatStateDownloadResponsePacket &set_cool_setpoint(float low_temp);
+  ThermostatStateDownloadResponsePacket &set_timestamp(tm time_struct);
+  ThermostatStateDownloadResponsePacket &set_auto_mode(uint8_t auto_byte);
+  ThermostatStateDownloadResponsePacket &set_heat_setpoint(float heat_setpoint);
+  ThermostatStateDownloadResponsePacket &set_cool_setpoint(float cool_setpoint);
+  std::string to_string() const override;
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::THERMOSTAT_STATE_DOWNLOAD);
+  }
 };
 
 class ThermostatAASetRequestPacket : public Packet {
@@ -109,6 +126,10 @@ class ThermostatABGetResponsePacket : public Packet {
   ThermostatABGetResponsePacket() : Packet(RawPacket(PacketType::GET_RESPONSE, 16)) {
     pkt_.set_payload_byte(0, static_cast<uint8_t>(GetCommand::THERMOSTAT_GET_AB));
     pkt_.set_payload_byte(1, 1);
+  }
+  static bool validate_type(const RawPacket &pkt) {
+    return pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
+           pkt.get_command() == static_cast<uint8_t>(GetCommand::THERMOSTAT_GET_AB);
   }
 };
 }  // namespace itp_packet
