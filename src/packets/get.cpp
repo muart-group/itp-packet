@@ -125,7 +125,7 @@ std::string ErrorStateGetResponsePacket::get_short_code() const {
   uint8_t low_bits = error_code & 0x1F;
   if (low_bits > 0x15) {
     char buf[7];
-    sprintf(buf, "ERR_%x", error_code);
+    snprintf(buf, sizeof(buf), "ERR_%x", error_code);
     return buf;
   }
 

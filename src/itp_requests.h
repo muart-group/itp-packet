@@ -42,7 +42,7 @@ class ITPPacketReader {
 //
 
 // Provides an object to receive/manage the coroutine_handle, and check to see if coroutine is still running
-struct Task {
+struct [[nodiscard("Task maintains coroutine frame and must be stored until routine is complete.")]] Task {
   struct promise_type {
     Task get_return_object() { return Task{std::coroutine_handle<promise_type>::from_promise(*this)}; }
     std::suspend_never initial_suspend() { return {}; }
@@ -57,7 +57,7 @@ struct Task {
   Task() = default;
 
   // Move constructor: Steals the handle and nulls out the source
-  Task(Task &&other) noexcept : handle(other.handle) { other.handle = nullptr; }
+  Task(Task && other) noexcept : handle(other.handle) { other.handle = nullptr; }
 
   // Move assignment: Destroys any existing frame, steals the new one
   Task &operator=(Task &&other) noexcept {

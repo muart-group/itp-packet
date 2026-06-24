@@ -17,7 +17,7 @@ template<class T> struct TimestampedValue {
   bool set(T new_value) {
     updated_at = itp_millis();
     if (!value || value != new_value) {
-      value = new_value;
+      value = std::move(new_value);
       return true;
     }
     return false;
@@ -54,7 +54,7 @@ class ITPSystemState {
   void register_receiver(ITPPacketReceiver *receiver) { this->receivers_.push_back(receiver); }
 
   // Caches the packet and sends to receivers *IF* it's one of the defined cached packet types above (otherwise ignores)
-  template<class PType> void cache_heatpump_packet(PType incoming_packet) {
+  template<class PType> void cache_heatpump_packet(const PType &incoming_packet) {
     if constexpr (is_in_tuple_v<TimestampedValue<PType>, HeatpumpPacketCache>) {
       auto &latest_packet = std::get<TimestampedValue<PType>>(heatpump_packet_cache_);
       if (latest_packet.set(incoming_packet)) {
@@ -72,7 +72,7 @@ class ITPSystemState {
   }
 
   // Caches the packet and sends to receivers *IF* it's one of the defined cached packet types above (otherwise ignores)
-  template<class PType> void cache_thermostat_packet(PType incoming_packet, bool always_notify = false) {
+  template<class PType> void cache_thermostat_packet(const PType &incoming_packet, bool always_notify = false) {
     if constexpr (is_in_tuple_v<TimestampedValue<PType>, ThermostatPacketCache>) {
       auto &latest_packet = std::get<TimestampedValue<PType>>(thermostat_packet_cache_);
       if (latest_packet.set(incoming_packet) || always_notify) {
