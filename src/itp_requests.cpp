@@ -23,6 +23,16 @@ std::optional<RawPacket> ITPPacketReader::check_for_packet() {
     // We waited to have a headers-worth of bytes, so go ahead and read them now (shouldn't need to wait here)
     byte_provider_.read_array(&packet_buffer_[1], PACKET_HEADER_SIZE - 1);
     buffer_position_ += (PACKET_HEADER_SIZE - 1);
+
+    // Check that payload size is not too large
+    if (packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] + PACKET_HEADER_SIZE + 1 > PACKET_MAX_SIZE) {
+      // If it's too large, log a warning and give up on this packet (it will be consumed by loop looking
+      // for next control byte)
+      ITP_LOGW(REQUESTS_TAG, "Payload length (%i) is larger than buffer!",
+               packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH]);
+      buffer_position_ = 0;
+      return std::nullopt;
+    }
   }
 
   if (buffer_position_ == PACKET_HEADER_SIZE &&
