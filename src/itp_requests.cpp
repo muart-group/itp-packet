@@ -26,7 +26,7 @@ std::optional<RawPacket> ITPPacketReader::check_for_packet() {
 
     // Check that payload size is not too large
     if (packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] + PACKET_HEADER_SIZE + 1 > PACKET_MAX_SIZE) {
-      // If it's too large, log a warning and give up on this packet (it will be consumed by loop looking
+      // If it's too large, log a warning and drop this packet (it will be consumed by loop looking
       // for next control byte)
       ITP_LOGW(REQUESTS_TAG, "Payload length (%i) is larger than buffer!",
                packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH]);
@@ -38,8 +38,16 @@ std::optional<RawPacket> ITPPacketReader::check_for_packet() {
   if (buffer_position_ == PACKET_HEADER_SIZE &&
       byte_provider_.available() >= packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] + 1) {
     // The rest of the packet has arrived, read it in (plus the checksum)
-    byte_provider_.read_array(&packet_buffer_[PACKET_HEADER_SIZE],
-                              packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] + 1);
+
+    if (!byte_provider_.read_array(&packet_buffer_[PACKET_HEADER_SIZE],
+                                   packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] + 1)) {
+      // If we were unable to read all of the bytes (*shouldn't* happen because we're checking
+      // .available(), but just in case), drop this packet
+      ITP_LOGW(REQUESTS_TAG, "Insufficient bytes available!");
+      buffer_position_ = 0;
+      return std::nullopt;
+    }
+
     auto rp = RawPacket(packet_buffer_, PACKET_HEADER_SIZE + packet_buffer_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] + 1);
     ITP_LOGV(REQUESTS_TAG, "Received %x packet on %s.", rp.get_packet_type(), log_name_);
 
