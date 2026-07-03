@@ -29,5 +29,6 @@ class ITPPacketReceiver {
   virtual void receive_packet(const ThermostatSensorStatusPacket &packet){};
   virtual void receive_packet(const ThermostatStateDownloadResponsePacket &packet){};
   virtual void receive_packet(const ThermostatStateUploadPacket &packet){};
+  virtual void receive_packet(const SettingsSetRequestPacket &packet){};
 };
 }

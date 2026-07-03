@@ -74,6 +74,8 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
             return send_to_heatpump<RemoteTemperatureSetRequestPacket, SetResponsePacket>(raw_request_packet);
           }
         case SetCommand::SETTINGS:
+          // Send to cache for ThermostatCommandReceivedSensor
+          sys_state_.cache_thermostat_packet(SettingsSetRequestPacket(std::move(raw_request_packet)), true);
           return send_to_heatpump<SettingsSetRequestPacket, SetResponsePacket>(raw_request_packet);
         case SetCommand::THERMOSTAT_SENSOR_STATUS:
           if (enhanced_mhk_) {

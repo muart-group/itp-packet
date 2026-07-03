@@ -35,7 +35,8 @@ using HeatpumpPacketCache =
 
 using ThermostatPacketCache =
     std::tuple<TimestampedValue<RemoteTemperatureSetRequestPacket>, TimestampedValue<ThermostatHelloPacket>,
-               TimestampedValue<ThermostatSensorStatusPacket>, TimestampedValue<ThermostatStateUploadPacket>>;
+               TimestampedValue<ThermostatSensorStatusPacket>, TimestampedValue<ThermostatStateUploadPacket>,
+               TimestampedValue<SettingsSetRequestPacket>>;
 
 // Define costexpr to check if a type is part of the tuple (to statically check if a packet type is one
 // we want to cache/forward to receivers or not)
