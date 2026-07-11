@@ -174,7 +174,7 @@ RawPacket Thermostat::adjust_mhk_temperature(RawPacket &raw_pkt) {
 
 void Thermostat::handle_state_upload(RawPacket &raw_pkt) {
   auto packet = ThermostatStateUploadPacket(std::move(raw_pkt));
-  if (packet.get_flags() & 0x08) {
+  if (packet.get_flags() & 0x04) {
     auto_mode_ = packet.get_auto_mode();
   }
   if (packet.get_flags() & 0x08) {
