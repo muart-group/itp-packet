@@ -180,10 +180,18 @@ void Thermostat::handle_state_upload(RawPacket &raw_pkt) {
   if (packet.get_flags() & 0x08) {
     heat_setpoint_ =
         mhk_fahrenheit_correction_ ? mhk_temp_to_actual(packet.get_heat_setpoint()) : packet.get_heat_setpoint();
+    if (mhk_fahrenheit_correction_) {
+      ITP_LOGD(THERMOSTAT_TAG, "handle_state_upload Fahrenheit Conversion %f -> %f", packet.get_heat_setpoint(),
+               mhk_temp_to_actual(packet.get_heat_setpoint()));
+    }
   }
   if (packet.get_flags() & 0x10) {
     cooldry_setpoint_ =
         mhk_fahrenheit_correction_ ? mhk_temp_to_actual(packet.get_cool_setpoint()) : packet.get_cool_setpoint();
+    if (mhk_fahrenheit_correction_) {
+      ITP_LOGD(THERMOSTAT_TAG, "handle_state_upload Fahrenheit Conversion %f -> %f", packet.get_cool_setpoint(),
+               mhk_temp_to_actual(packet.get_cool_setpoint()));
+    }
   }
 
   sys_state_.cache_thermostat_packet(packet);  // Don't always notify to reduce repeated timestamp processing
@@ -196,7 +204,15 @@ ThermostatStateDownloadResponsePacket Thermostat::get_state_download_response() 
 
   response.set_auto_mode(auto_mode_);
   response.set_cool_setpoint(mhk_fahrenheit_correction_ ? mhk_temp_from_actual(cooldry_setpoint_) : cooldry_setpoint_);
+  if (mhk_fahrenheit_correction_) {
+    ITP_LOGD(THERMOSTAT_TAG, "get_state_download_response Fahrenheit Conversion %f -> %f", cooldry_setpoint_,
+             mhk_temp_from_actual(cooldry_setpoint_));
+  }
   response.set_heat_setpoint(mhk_fahrenheit_correction_ ? mhk_temp_from_actual(heat_setpoint_) : heat_setpoint_);
+  if (mhk_fahrenheit_correction_) {
+    ITP_LOGD(THERMOSTAT_TAG, "get_state_download_response Fahrenheit Conversion %f -> %f", heat_setpoint_,
+             mhk_temp_from_actual(heat_setpoint_));
+  }
 
   ITP_LOGD(THERMOSTAT_TAG, "Sending %s", response.to_string().c_str());
 
