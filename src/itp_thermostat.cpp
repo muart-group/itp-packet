@@ -161,7 +161,7 @@ RawPacket Thermostat::adjust_mhk_temperature(RawPacket &raw_pkt) {
   }
   // Get Target
   else if (raw_pkt.get_packet_type() == static_cast<uint8_t>(PacketType::GET_RESPONSE) &&
-           raw_pkt.get_command() == static_cast<uint8_t>(SetCommand::SETTINGS)) {
+           raw_pkt.get_command() == static_cast<uint8_t>(GetCommand::SETTINGS)) {
     SettingsGetResponsePacket temp_pkt = SettingsGetResponsePacket(std::move(raw_pkt));
     ITP_LOGV(THERMOSTAT_TAG, "Adjusting MHK temp from %f", temp_pkt.get_target_temp());
     temp_pkt.set_target_temperature(mhk_temp_from_actual(temp_pkt.get_target_temp()));
