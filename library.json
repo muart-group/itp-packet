@@ -1,0 +1,14 @@
+{
+    "name": "ITPPacket",
+    "version": "1.0.1",
+    "description": "Utilities for IT Protocol communication (primarily used by MITP ESPHome Component",
+    "keywords": "muart, mitp, mitsubishi, cn105",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/muart-group/itp-packet.git"
+    },
+    "authors": [],
+    "homepage": "https://muart-group.github.io/",
+    "frameworks": "*",
+    "platforms": "*"
+}
