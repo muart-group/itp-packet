@@ -83,7 +83,7 @@ class Heatpump : public ITPPacketReader {
   bool reset_filter();
 
   bool set_remote_temperature(float degC);
-  bool use_internal_temperature(bool use_internal = true);
+  bool use_internal_temperature();
   bool set_zone_active(uint8_t zone, bool active = true);
 
  private:

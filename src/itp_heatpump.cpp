@@ -115,7 +115,7 @@ Task Heatpump::do_update_queries() {
       ITP_LOGV(HEATPUMP_TAG, "Received %s", runstate_res->to_string().c_str());
       sys_state_.cache_heatpump_packet(runstate_res.value());
     } else {
-      ITP_LOGW(HEATPUMP_TAG, "Runstate Packet not recevied!");
+      ITP_LOGW(HEATPUMP_TAG, "Runstate Packet not received!");
     }
   } else {
     ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", runstate_res->to_string().c_str());
@@ -132,7 +132,7 @@ Task Heatpump::do_update_queries() {
       ITP_LOGV(HEATPUMP_TAG, "Received %s", settings_res->to_string().c_str());
       sys_state_.cache_heatpump_packet(settings_res.value());
     } else {
-      ITP_LOGW(HEATPUMP_TAG, "Settings Packet not recevied!");
+      ITP_LOGW(HEATPUMP_TAG, "Settings Packet not received!");
     }
   } else {
     ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", settings_res->to_string().c_str());
@@ -147,7 +147,7 @@ Task Heatpump::do_update_queries() {
       ITP_LOGV(HEATPUMP_TAG, "Received %s", status_res->to_string().c_str());
       sys_state_.cache_heatpump_packet(status_res.value());
     } else {
-      ITP_LOGW(HEATPUMP_TAG, "Status Packet not recevied!");
+      ITP_LOGW(HEATPUMP_TAG, "Status Packet not received!");
     }
   } else {
     ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", status_res->to_string().c_str());
@@ -165,7 +165,7 @@ Task Heatpump::do_update_queries() {
       ITP_LOGV(HEATPUMP_TAG, "Received %s", temp_res->to_string().c_str());
       sys_state_.cache_heatpump_packet(temp_res.value());
     } else {
-      ITP_LOGW(HEATPUMP_TAG, "Current Temperature Packet not recevied!");
+      ITP_LOGW(HEATPUMP_TAG, "Current Temperature Packet not received!");
     }
   } else {
     ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", temp_res->to_string().c_str());
@@ -182,7 +182,7 @@ Task Heatpump::do_update_queries() {
       ITP_LOGV(HEATPUMP_TAG, "Received %s", error_res->to_string().c_str());
       sys_state_.cache_heatpump_packet(error_res.value());
     } else {
-      ITP_LOGW(HEATPUMP_TAG, "Error Info Packet not recevied!");
+      ITP_LOGW(HEATPUMP_TAG, "Error Info Packet not received!");
     }
   } else {
     ITP_LOGV(HEATPUMP_TAG, "Cache hit %s", error_res->to_string().c_str());
@@ -254,10 +254,10 @@ bool Heatpump::set_remote_temperature(float degC) {
   }
 }
 
-bool Heatpump::use_internal_temperature(bool use_internal) {
+bool Heatpump::use_internal_temperature() {
   if (check_command_queue_()) {
     RemoteTemperatureSetRequestPacket set_packet = RemoteTemperatureSetRequestPacket();
-    set_packet.set_use_internal_temperature(use_internal);
+    set_packet.set_use_internal_temperature(true);
     command_tasks_.push_back(enqueue_packet<SetResponsePacket>(set_packet));
     return true;
   } else {
