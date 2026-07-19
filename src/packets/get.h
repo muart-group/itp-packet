@@ -72,7 +72,7 @@ class SettingsGetResponsePacket : public Packet {
  public:
   uint8_t get_power() const { return pkt_.get_payload_byte(PLINDEX_POWER); }
   uint8_t get_mode() const { return pkt_.get_payload_byte(PLINDEX_MODE); }
-  const uint8_t get_fan() const { return pkt_.get_payload_byte(PLINDEX_FAN); }
+  uint8_t get_fan() const { return pkt_.get_payload_byte(PLINDEX_FAN); }
   uint8_t get_vane() const { return pkt_.get_payload_byte(PLINDEX_VANE); }
   bool locked_power() const { return pkt_.get_payload_byte(PLINDEX_PROHIBITFLAGS) & 0x01; }
   bool locked_mode() const { return pkt_.get_payload_byte(PLINDEX_PROHIBITFLAGS) & 0x02; }
