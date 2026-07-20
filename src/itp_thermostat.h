@@ -43,6 +43,9 @@ class Thermostat : public ITPPacketReader {
         co_await RequestAwaiter<ResponseType, Heatpump>(std::move(req), connected_heatpump_);
 
     if (response_pkt) {
+      sys_state_.cache_heatpump_packet(
+          *response_pkt);  // Send to SystemState to be cached/forwarded (if it's of the appropriate type)
+
       // If temperature correction is on, adjust temperatures
       if (mhk_fahrenheit_correction_) {
         response_pkt = ResponseType(adjust_mhk_temperature(response_pkt->raw_packet()));
@@ -50,8 +53,6 @@ class Thermostat : public ITPPacketReader {
 
       ITP_LOGD(THERMOSTAT_TAG, "Sending to thermostat %s", response_pkt.value().to_string().c_str());
       write_raw_packet_(response_pkt.value().raw_packet());  // Send to thermostat ASAP
-      sys_state_.cache_heatpump_packet(
-          *response_pkt);  // Send to SystemState to be cached/forwarded (if it's of the appropriate type)
 
     } else {
       ITP_LOGW(THERMOSTAT_TAG, "No response to thermostat packet");
