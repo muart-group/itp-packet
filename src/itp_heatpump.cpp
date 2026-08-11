@@ -49,7 +49,8 @@ void Heatpump::loop() {
   if (current_request_ctx_) {
     // If there's a request in-flight, but it's been too long, timeout
     if (itp_millis() - packet_sent_millis_ > 1000) {
-      ITP_LOGW(HEATPUMP_TAG, "Timed out waiting for packet!");
+      ITP_LOGW(HEATPUMP_TAG, "Timed out waiting for packet! Please check connection to heat pump as this often "
+                             "indicates a communication issue.");
       current_request_ctx_->handle.resume();
       current_request_ctx_ = nullptr;
     }
