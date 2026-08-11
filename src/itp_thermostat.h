@@ -33,7 +33,11 @@ class Thermostat : public ITPPacketReader {
   uint8_t get_auto_mode() const { return auto_mode_; }
 
  protected:
-  template<class RequestType, class ResponseType, class ResponseModifier = decltype([](ResponseType &) {})>
+  struct NoOpResponseModifier {
+    template<class T> void operator()(T &) const {}
+  };
+
+  template<class RequestType, class ResponseType, class ResponseModifier = NoOpResponseModifier>
   Task send_to_heatpump(RawPacket &raw_request_packet, ResponseModifier response_modifier = ResponseModifier{}) {
     RequestType typed_request(std::move(raw_request_packet));
     sys_state_.cache_thermostat_packet(typed_request);
