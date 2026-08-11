@@ -84,6 +84,11 @@ SettingsGetResponsePacket &SettingsGetResponsePacket::set_target_temperature(con
   return *this;
 }
 
+SettingsGetResponsePacket &SettingsGetResponsePacket::set_mode(const SettingsSetRequestPacket::ModeByte mode) {
+  pkt_.set_payload_byte(PLINDEX_MODE, mode);
+  return *this;
+}
+
 // CurrentTempGetResponsePacket functions
 float CurrentTempGetResponsePacket::get_current_temp() const {
   uint8_t enhanced_raw_temp = pkt_.get_payload_byte(PLINDEX_CURRENTTEMP);

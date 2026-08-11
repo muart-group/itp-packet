@@ -31,6 +31,17 @@ Task Thermostat::handle_thermostat_request(RawPacket &raw_request_packet) {
     case PacketType::GET_REQUEST:
       switch (static_cast<GetCommand>(raw_request_packet.get_command())) {
         case GetCommand::SETTINGS:
+          // If enhanced_mhk_ && auto_mode_ , we need to tell the MHK2 that we're in "auto" mode, despite the actual
+          // mode
+          ITP_LOGW(THERMOSTAT_TAG, "Settings Get: %b %b", enhanced_mhk_, auto_mode_);
+          if (enhanced_mhk_ && auto_mode_) {
+            ITP_LOGV(THERMOSTAT_TAG, "Modifying packet!");
+            return send_to_heatpump<GetRequestPacket, SettingsGetResponsePacket>(
+                raw_request_packet, [this](SettingsGetResponsePacket &response_pkt) {
+                  response_pkt.set_mode(SettingsSetRequestPacket::MODE_BYTE_AUTO);
+                  ITP_LOGV(THERMOSTAT_TAG, "Set mode byte to %x", response_pkt.get_mode());
+                });
+          }
           return send_to_heatpump<GetRequestPacket, SettingsGetResponsePacket>(raw_request_packet);
         case GetCommand::CURRENT_TEMP:
           return send_to_heatpump<GetRequestPacket, CurrentTempGetResponsePacket>(raw_request_packet);

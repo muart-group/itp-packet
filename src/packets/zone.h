@@ -1,6 +1,6 @@
 #pragma once
 
-#include "itp_packet.h"
+#include "../itp_packet.h"
 
 namespace itp_packet {
 

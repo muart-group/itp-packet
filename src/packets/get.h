@@ -1,6 +1,7 @@
 #pragma once
 
-#include "itp_packet.h"
+#include "../itp_packet.h"
+#include "set.h"
 
 namespace itp_packet {
 
@@ -85,6 +86,7 @@ class SettingsGetResponsePacket : public Packet {
   bool is_i_see_enabled() const;
 
   SettingsGetResponsePacket &set_target_temperature(float temperature_degrees_c);
+  SettingsGetResponsePacket &set_mode(const SettingsSetRequestPacket::ModeByte mode);
 
   std::string to_string() const override;
   static bool validate_type(const RawPacket &pkt) {

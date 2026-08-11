@@ -33,7 +33,8 @@ class Thermostat : public ITPPacketReader {
   uint8_t get_auto_mode() const { return auto_mode_; }
 
  protected:
-  template<class RequestType, class ResponseType> Task send_to_heatpump(RawPacket &raw_request_packet) {
+  template<class RequestType, class ResponseType, class ResponseModifier = decltype([](ResponseType &) {})>
+  Task send_to_heatpump(RawPacket &raw_request_packet, ResponseModifier response_modifier = ResponseModifier{}) {
     RequestType typed_request(std::move(raw_request_packet));
     sys_state_.cache_thermostat_packet(typed_request);
     ITP_LOGD(THERMOSTAT_TAG, "Receiving from thermostat %s", typed_request.to_string().c_str());
@@ -45,6 +46,8 @@ class Thermostat : public ITPPacketReader {
     if (response_pkt) {
       sys_state_.cache_heatpump_packet(
           *response_pkt);  // Send to SystemState to be cached/forwarded (if it's of the appropriate type)
+
+      response_modifier(*response_pkt);  // Default does nothing, but can modify response
 
       // If temperature correction is on, adjust temperatures
       if (mhk_fahrenheit_correction_) {
