@@ -2,6 +2,7 @@
 
 #include <bit>
 #include <cstring>
+#include <ctime>
 #include <math.h>
 #include <string>
 #include <type_traits>
