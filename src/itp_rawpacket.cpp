@@ -3,12 +3,8 @@
 namespace itp_packet {
 
 // Creates an empty packet
-RawPacket::RawPacket(PacketType packet_type, uint8_t payload_size, SourceBridge source_bridge,
-                     ControllerAssociation controller_association)
-    : length_{(uint8_t) (payload_size + PACKET_HEADER_SIZE + 1)},
-      checksum_index_{(uint8_t) (length_ - 1)},
-      source_bridge_{source_bridge},
-      controller_association_{controller_association} {
+RawPacket::RawPacket(PacketType packet_type, uint8_t payload_size)
+    : length_{(uint8_t) (payload_size + PACKET_HEADER_SIZE + 1)}, checksum_index_{(uint8_t) (length_ - 1)} {
   memcpy(packet_bytes_, EMPTY_PACKET, length_);
   packet_bytes_[PACKET_HEADER_INDEX_PACKET_TYPE] = static_cast<uint8_t>(packet_type);
   packet_bytes_[PACKET_HEADER_INDEX_PAYLOAD_LENGTH] = payload_size;
@@ -17,12 +13,8 @@ RawPacket::RawPacket(PacketType packet_type, uint8_t payload_size, SourceBridge 
 }
 
 // Creates a packet with the provided bytes
-RawPacket::RawPacket(const uint8_t packet_bytes[], const uint8_t packet_length, SourceBridge source_bridge,
-                     ControllerAssociation controller_association)
-    : length_{(uint8_t) packet_length},
-      checksum_index_{(uint8_t) (packet_length - 1)},
-      source_bridge_{source_bridge},
-      controller_association_{controller_association} {
+RawPacket::RawPacket(const uint8_t packet_bytes[], const uint8_t packet_length)
+    : length_{(uint8_t) packet_length}, checksum_index_{(uint8_t) (packet_length - 1)} {
   memcpy(packet_bytes_, packet_bytes, packet_length);
 
   if (!this->is_checksum_valid()) {

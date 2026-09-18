@@ -1,11 +1,12 @@
 #pragma once
 
-#include <array>
-#include <cstring>
-#include <sstream>
-#include <string>
 #include "itp_rawpacket.h"
 #include "itp_utils.h"
+#include <array>
+#include <cstring>
+#include <optional>
+#include <sstream>
+#include <string>
 
 namespace itp_packet {
 static constexpr char PACKETS_TAG[] = "mitsubishi_itp.packets";
@@ -19,7 +20,7 @@ static constexpr char PACKETS_TAG[] = "mitsubishi_itp.packets";
 #define CONSOLE_COLOR_WHITE "\033[0;37m"
 
 // Defined as constant for use as a Custom Fan Mode
-inline const char* FAN_MODE_VERYHIGH = "Very High";
+inline const char *FAN_MODE_VERYHIGH = "Very High";
 
 // These are named to match with set fan speeds where possible.  "Very Low" is a special speed
 // for e.g. preheating or thermal off.
@@ -33,14 +34,30 @@ class PacketProcessor;
 // Generic Base Packet wrapper over RawPacket
 class Packet {
  public:
-  Packet(RawPacket &&pkt) : pkt_(pkt){};  // TODO: Confirm this needs std::move if call to constructor ALSO has move
-  Packet();                               // For optional<> construction
+  // TODO: Can I hide these in favor of from_rawpacket?
+  Packet(RawPacket &&pkt) : pkt_(std::move(pkt)){};
+  Packet();  // For optional<> construction
+
+  // Only compares inner raw packet (ignoring extras like sequence_num and response_expected which should probably be
+  // implemented elsewhere anyway)
+  bool operator==(const Packet &other) const { return pkt_ == other.pkt_; }
 
   // Returns a (more) human-readable string of the packet
   virtual std::string to_string() const;
 
+  // static bool validate_type(RawPacket &pkt) { return false; };  // No packet can be a generic packet, just return
+  // false
+
+  template<class PType> static std::optional<PType> try_from_raw(RawPacket &&pkt) {
+    if (PType::validate_type(pkt))
+      return PType(std::move(pkt));
+    return std::nullopt;
+  }
+
   // Is a response packet expected when this packet is sent.  Defaults to true since
   // most requests receive a response.
+  // TODO: This should probably be inherent to the packet type rather than set dynamically
+  // As far as we know ALL supported packets expect a response, and a lack of response is just a lack of support
   bool is_response_expected() const { return response_expected_; };
   void set_response_expected(bool expect_response) { response_expected_ = expect_response; };
 
@@ -60,9 +77,6 @@ class Packet {
   // Adds a flag2 (ONLY APPLICABLE FOR SOME COMMANDS)
   void add_flag2(uint8_t flag2_to_add);
 
-  SourceBridge get_source_bridge() const { return pkt_.get_source_bridge(); }
-  ControllerAssociation get_controller_association() const { return pkt_.get_controller_association(); }
-
   void set_sequence(const uint8_t seq) { sequence_num_ = seq; }
   uint8_t get_sequence() const { return sequence_num_; }
 
@@ -76,6 +90,14 @@ class Packet {
 
  private:
   bool response_expected_ = true;
+};
+
+// Concrete class for unknown packets so that validate_type will return true.
+class UnknownPacket : public Packet {
+ public:
+  using Packet::Packet;
+  std::string to_string() const override { return Packet::to_string(); };
+  static bool validate_type(const RawPacket &pkt) { return true; }
 };
 
 }  // namespace itp_packet

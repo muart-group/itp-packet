@@ -67,8 +67,8 @@ struct tm ThermostatStateUploadPacket::get_thermostat_timestamp() const {
   return_timestamp.tm_min = (raw_timestamp >> 6) & 63;
   return_timestamp.tm_hour = (raw_timestamp >> 12) & 31;
   return_timestamp.tm_mday = (raw_timestamp >> 17) & 31;
-  return_timestamp.tm_mon = (raw_timestamp >> 22) & 15;
-  return_timestamp.tm_year = (raw_timestamp >> 26) + 2017;
+  return_timestamp.tm_mon = ((raw_timestamp >> 22) - 1) & 15;
+  return_timestamp.tm_year = (raw_timestamp >> 26) + 117;
 
   // out_timestamp->recalc_timestamp_local();
   return return_timestamp;
@@ -87,11 +87,10 @@ float ThermostatStateUploadPacket::get_cool_setpoint() const {
 }
 
 // ThermostatStateDownloadResponsePacket functions
-ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_timestamp(time_t ts) {
-  // int32_t encoded_timestamp = ((ts.year - 2017) << 26) | (ts.month << 22) | (ts.day_of_month << 17) | (ts.hour << 12)
-  // |
-  //                             (ts.minute << 6) | (ts.second);
-  int32_t encoded_timestamp = (int32_t) ts;
+ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_timestamp(tm time_struct) {
+  int32_t encoded_timestamp = ((time_struct.tm_year - 117) << 26) | ((time_struct.tm_mon + 1) << 22) |
+                              (time_struct.tm_mday << 17) | (time_struct.tm_hour << 12) | (time_struct.tm_min << 6) |
+                              (time_struct.tm_sec);
 
   int32_t swapped_timestamp = __builtin_bswap32(encoded_timestamp);
 
@@ -101,22 +100,36 @@ ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::se
   return *this;
 }
 
-ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_auto_mode(bool is_auto) {
-  pkt_.set_payload_byte(PLINDEX_AUTO_MODE, is_auto ? 0x01 : 0x00);
+ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_auto_mode(uint8_t auto_byte) {
+  pkt_.set_payload_byte(PLINDEX_AUTO_MODE, auto_byte);
   return *this;
 }
 
-ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_heat_setpoint(float high_temp) {
-  uint8_t temp_a = high_temp != NAN ? ITPUtils::deg_c_to_temp_scale_a(high_temp) : 0x00;
+ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_heat_setpoint(float heat_setpoint) {
+  uint8_t temp_a = heat_setpoint != NAN ? ITPUtils::deg_c_to_temp_scale_a(heat_setpoint) : 0x00;
 
   pkt_.set_payload_byte(PLINDEX_HEAT_SETPOINT, temp_a);
   return *this;
 }
 
-ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_cool_setpoint(float low_temp) {
-  uint8_t temp_a = low_temp != NAN ? ITPUtils::deg_c_to_temp_scale_a(low_temp) : 0x00;
+ThermostatStateDownloadResponsePacket &ThermostatStateDownloadResponsePacket::set_cool_setpoint(float cool_setpoint) {
+  uint8_t temp_a = cool_setpoint != NAN ? ITPUtils::deg_c_to_temp_scale_a(cool_setpoint) : 0x00;
 
   pkt_.set_payload_byte(PLINDEX_COOL_SETPOINT, temp_a);
   return *this;
+}
+
+std::string ThermostatStateDownloadResponsePacket::to_string() const {
+  uint8_t flags = get_flags();
+
+  std::string result = "Thermostat Download Response " + Packet::to_string() + CONSOLE_COLOR_PURPLE;
+
+  result += "\n Auto: " + ITPUtils::format_hex(pkt_.get_payload_byte(PLINDEX_AUTO_MODE));
+  result +=
+      " Heat Sepoint: " + std::to_string(ITPUtils::temp_scale_a_to_deg_c(pkt_.get_payload_byte(PLINDEX_HEAT_SETPOINT)));
+  result +=
+      " Cool Sepoint: " + std::to_string(ITPUtils::temp_scale_a_to_deg_c(pkt_.get_payload_byte(PLINDEX_COOL_SETPOINT)));
+
+  return result;
 }
 }  // namespace itp_packet

@@ -84,6 +84,11 @@ SettingsGetResponsePacket &SettingsGetResponsePacket::set_target_temperature(con
   return *this;
 }
 
+SettingsGetResponsePacket &SettingsGetResponsePacket::set_mode(const SettingsSetRequestPacket::ModeByte mode) {
+  pkt_.set_payload_byte(PLINDEX_MODE, mode);
+  return *this;
+}
+
 // CurrentTempGetResponsePacket functions
 float CurrentTempGetResponsePacket::get_current_temp() const {
   uint8_t enhanced_raw_temp = pkt_.get_payload_byte(PLINDEX_CURRENTTEMP);
@@ -125,7 +130,7 @@ std::string ErrorStateGetResponsePacket::get_short_code() const {
   uint8_t low_bits = error_code & 0x1F;
   if (low_bits > 0x15) {
     char buf[7];
-    sprintf(buf, "ERR_%x", error_code);
+    snprintf(buf, sizeof(buf), "ERR_%x", error_code);
     return buf;
   }
 
