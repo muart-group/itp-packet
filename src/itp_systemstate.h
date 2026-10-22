@@ -103,7 +103,7 @@ class ITPSystemState {
 
   // Returns true if heatpump's last reported mode was HEAT
   bool is_heatpump_on_heat() {
-    std::optional<SettingsGetResponsePacket> last_settings = check_heatpump_cache<SettingsGetResponsePacket>();
+    std::optional<SettingsGetResponsePacket> last_settings = check_heatpump_cache<SettingsGetResponsePacket>(30000U);
     if (last_settings) {
       return last_settings->get_mode() == itp_packet::SettingsSetRequestPacket::ModeByte::MODE_BYTE_HEAT;
     }
@@ -112,7 +112,7 @@ class ITPSystemState {
 
   // Returns true if heatpump's last reported mode was COOL
   bool is_heatpump_on_cool() {
-    std::optional<SettingsGetResponsePacket> last_settings = check_heatpump_cache<SettingsGetResponsePacket>();
+    std::optional<SettingsGetResponsePacket> last_settings = check_heatpump_cache<SettingsGetResponsePacket>(30000U);
     if (last_settings) {
       return last_settings->get_mode() == itp_packet::SettingsSetRequestPacket::ModeByte::MODE_BYTE_COOL;
     }
